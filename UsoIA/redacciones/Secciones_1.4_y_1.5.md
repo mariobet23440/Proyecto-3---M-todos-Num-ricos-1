@@ -48,7 +48,7 @@ Ok. Quisiera que me ayudes redactando eso. Ya entiendo qué sucede. Cometí el e
   - por qué el Jacobiano aparece en el análisis del error y no en el método;
   - por qué la estabilidad no depende de $\mathbf T_k$;
   - el criterio $|1 + h\lambda_i| \le 1$;
-  - la regularización de la fricción de Coulomb con $	anh$ y el Jacobiano del motor.
+  - la regularización de la fricción de Coulomb con $\tanh$ y el Jacobiano del motor.
 - **Quedó pendiente, como pidió el autor en C-06:** el cálculo de los valores propios del motor.
 - **Sección 1.5 nueva:**
   - espacio métrico y función distancia;

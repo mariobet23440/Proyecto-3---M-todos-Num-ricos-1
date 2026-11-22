@@ -367,13 +367,13 @@ Ok. Quisiera que me ayudes redactando eso. Ya entiendo qué sucede. Cometí el e
 El autor había quitado el Jacobiano de su borrador de la 1.4 por ser el sistema no lineal, y preguntó por qué se descartaba $\mathbf T_k$. La IA le explicó tres cosas:
 - **$\mathbf f$ y el Jacobiano tienen papeles distintos:** $\mathbf f$ se usa para calcular la solución, y el Jacobiano para analizar el error.
 - **$\mathbf T_k$ no se ignora:** es una fuente de error, y no decide la estabilidad.
-- **Sin derivadas, sirve la condición de Lipschitz**, y la $	anh$ hace al modelo diferenciable.
+- **Sin derivadas, sirve la condición de Lipschitz**, y la $\tanh$ hace al modelo diferenciable.
 
 ### Lo que hizo la IA
 - **Sección 1.4** del cuaderno, reescrita sobre el borrador del autor:
   - corrigió la descripción de los componentes del error y la definición de estabilidad;
   - explicó el papel del Jacobiano y por qué la estabilidad no depende de $\mathbf T_k$;
-  - incluyó el criterio $|1 + h\lambda_i| \le 1$ y el Jacobiano del motor con la fricción regularizada con $	anh$.
+  - incluyó el criterio $|1 + h\lambda_i| \le 1$ y el Jacobiano del motor con la fricción regularizada con $\tanh$.
 - **Sección 1.5 nueva (bonus):** espacio métrico y función distancia, funciones Lipschitz, relación con el Jacobiano, cota del error global de Euler, alcances y limitaciones.
 - **Historial de revisiones del cuaderno:** se agregó la línea del cambio.
 - **Comentario del revisor en C-01:** se corrigió, a pedido del autor, para reflejar el entendimiento actual (el error fue usar el Jacobiano en la deducción del método; el Jacobiano pertenece al análisis de estabilidad). La versión original queda en el historial de git.
@@ -382,13 +382,113 @@ El autor había quitado el Jacobiano de su borrador de la 1.4 por ser el sistema
 ### Lo que la IA NO hizo
 - **No calculó los valores propios del motor:** el autor dijo que eso lo revisaría él (C-06).
 - **No modificó otras celdas del cuaderno.**
-- **No cambió el comentario del revisor en C-02**, aunque contiene una imprecisión: dice que el sistema es no lineal "por los términos constantes". Los términos constantes lo hacen afín; la no linealidad viene de $	ext{sign}(\omega)$. Queda para que el autor decida.
+- **No cambió el comentario del revisor en C-02**, aunque contiene una imprecisión: dice que el sistema es no lineal "por los términos constantes". Los términos constantes lo hacen afín; la no linealidad viene de $\text{sign}(\omega)$. Queda para que el autor decida.
 
 ### Advertencia
 La versión del cuaderno en Colab del autor tenía cambios en la 1.4 que no estaban en GitHub. El texto subido incluye ese borrador de la 1.4, pero si en Colab hay cambios en otras celdas, hay que copiarlos antes de recargar el cuaderno desde GitHub.
 
 ### Decisiones del equipo
 - *(pendiente)*
+
+---
+
+## Entrada 10 — 22/11/2026 · Animaciones de Euler, estabilidad y Lipschitz
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Archivos** | [`Animaciones/`](../Animaciones/) (tres GIF y el script `generar_animaciones.py`) |
+
+### Solicitud
+```text
+Oye, podrías generar una animación que ayude a explicar los conceptos de Euler, estabilidad y Lipschitz. Por favor coloca que tu las hiciste. ¿Puedes incluirlas como gifs en el cuadernillo?
+```
+
+### Lo que hizo la IA
+- **Tres animaciones GIF** generadas con matplotlib, todas sobre el circuito eléctrico del motor ($L\,di/dt = V - R\,i$, con 12 V, 6 Ω y 2 mH):
+  - `euler_paso_a_paso.gif`: el método de Euler paso a paso, con la tangente de cada paso y el error frente a la solución exacta.
+  - `estabilidad_euler.gif`: el punto $h\lambda$ entra y sale del disco $|1 + h\lambda| \le 1$ al crecer $h$, junto con la solución numérica correspondiente.
+  - `lipschitz_cono.gif`: el "cono" de pendiente $\pm\mathcal{L}$ recorre $\tanh(\omega/\varepsilon)$ sin salirse, y falla en el salto de $\text{sign}(\omega)$.
+- **Crédito:** cada GIF lleva el texto "Animación: Claude Opus 5.5 (Anthropic)", y cada celda del cuaderno, una nota de autoría.
+- **Cuaderno:**
+  - se insertaron tres celdas, después de las secciones 1.1, 1.4 y 1.5;
+  - los GIF se enlazan con la URL de GitHub (`raw.githubusercontent.com`), porque Colab no resuelve rutas relativas;
+  - se agregó la línea al historial de revisiones.
+- **Verificación:** las 263 expresiones LaTeX del cuaderno compilan en MathJax sin errores, y se revisaron cuadros de cada GIF.
+
+### Error de la IA corregido en esta entrada
+- **Caracteres de control.** Al escribir textos con barras invertidas a través de un heredoc de bash, algunos comandos LaTeX se convirtieron en caracteres de control: `\frac`, `\tau` y `\right` en una celda nueva del cuaderno, y `\tanh` y `\text` en la Entrada 9 y en `redacciones/Secciones_1.4_y_1.5.md`, ya publicados en el commit `856eaee`. Se detectó al revisar las fórmulas, se corrigió en todos los archivos y se verificó que ningún archivo de texto del repositorio tenga caracteres de control.
+
+### Lo que la IA NO hizo
+- No cambió el texto de las secciones del cuaderno.
+
+### Advertencia
+Los GIF solo se ven en Colab después de subirlos a GitHub, porque se cargan desde la URL del repositorio.
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
+## Entrada 11 — 22/11/2026 · Combinación con la versión de Colab, funciones de derivación y correcciones de la Parte 2
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`correcciones/Correcciones_Parte2_2026-11-22.md`](correcciones/Correcciones_Parte2_2026-11-22.md) |
+
+### Solicitud
+```text
+Sí por favor, combínalos. Por favor revisa el código de Grettel y Deyler (Import) y ayúdame a importar sus funciones a mi cuadernillo. Por ahora haz eso sólo para la parte de derivación. Quiero que en una celda coloques primero las funciones para aplicar cada uno de los métodos descritos en el documento. Revisa por favor lo nuevo que escribí en el documento y dime si debo hacer correcciones. Haz un documento de correcciones breves y preséntamelas acá para qeu yo las llene contigo
+```
+```text
+Por favor quiero que la incorporación sea tan ordenada como sea posible. Siento que el código que me dieron está un poco desorganizado y le falta documentación. Comenta por favor.
+```
+```text
+Hey creo qeu te faltaron las imágenes para ilustrar conceptos que te pedí ayer. Tampoco puedo ver los cambios de Lipschitz. Por favor revisa que esos cambios que te pedí aparezcan en el documento. Creo que no se finalizaron o algo así
+```
+
+### Contexto: por qué faltaban las animaciones y la sección 1.5
+El autor guardó el cuaderno desde Colab tres veces (commits `1512690`, `13885a5` y `da60a24`) a partir de una copia que no tenía los cambios del commit `856eaee`: la sección 1.5, las Referencias y las citas a Nise. Esos guardados los reemplazaron en GitHub. Además, GitHub Desktop guardó en un stash los cambios de la IA que todavía no tenían commit (las animaciones y la Entrada 10). No se perdió nada: todo se recuperó del stash y del historial.
+
+### Lo que hizo la IA
+- **Combinación del cuaderno**, por celda y por id de Colab, con la versión del autor (`da60a24`) como base:
+  - **Se conservaron sin cambios** todas las celdas del autor, salvo las cinco previstas, y su orden.
+  - **Se restauraron:**
+    - las citas a Nise (celdas 7 y 8);
+    - la sección 1.5;
+    - las tres animaciones (después de 1.1, 1.4 y 1.5);
+    - la sección de Referencias (al final);
+    - las líneas del historial de revisiones.
+  - **En la 1.4** se mantuvo la celda del autor y se completó la segunda con los componentes del error corregidos, la definición de estabilidad y la continuación (Jacobiano, $\mathbf T_k$, criterio, $\tanh$). El párrafo del autor "Para ser completamente honestos…" se conservó palabra por palabra, incluida la frase sin terminar.
+- **Funciones de derivación** (sección 2.3.4, en la celda de código vacía que dejó el autor):
+  - **Origen:** se importaron de la celda 14 del cuaderno de Grettel y Deyler: `d_adelante_k`, `d_atras_k`, `d_centrada_k`, `d_richardson` y `derivada_sin_bordes`.
+  - **Mejoras:** docstrings, comentarios, validación de entradas y una tabla de métodos corregida (la centrada es $O(h^2)$ solo con paso uniforme).
+  - **Verificación:** se agregó una celda que prueba las funciones con $\sin x$.
+- **Revisión del texto nuevo del autor:** 17 correcciones breves en `correcciones/Correcciones_Parte2_2026-11-22.md`. Entre ellas, dos errores de contenido:
+  - la fórmula $N = n_F/2$, que debe ser $N = 2\,n_F$;
+  - el pseudocódigo, que no actualiza `A_prev` y obtiene el sentido de giro de la velocidad, que es lo que se quiere calcular.
+
+  También se respondió la nota de Grettel sobre diferenciabilidad y analiticidad.
+
+### Verificación
+- **Celdas del autor:** solo cambiaron las cinco previstas, y se conservó su orden.
+- **Código:** las dos celdas de código corren sin errores. Los órdenes observados son 1,00; 1,00; 2,00 y 4,00. Con paso no uniforme, la centrada baja a orden 1.
+- **LaTeX:** las 317 expresiones del cuaderno compilan en MathJax sin errores.
+- **Caracteres de control:** ningún archivo de texto del repositorio los tiene.
+
+### Lo que la IA NO hizo
+- **No aplicó las 17 correcciones** de la Parte 2: el revisor las va a decidir.
+- **No importó otras partes** del cuaderno de Grettel y Deyler (integración, simulación, gemelo digital).
+- **No borró el stash de GitHub Desktop** (`stash@{0}`). Se puede borrar después de confirmar que todo está en GitHub.
+
+### Recomendación de flujo
+Después de cada push de la IA, abrir el cuaderno en Colab desde GitHub antes de seguir editando. Guardar una copia vieja desde Colab reemplaza los cambios que no tenga.
+
+### Decisiones del equipo
+- *(pendiente: decisiones de C2-01 a C2-17)*
 
 ---
 

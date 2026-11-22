@@ -21,6 +21,7 @@ $$
 ```
 .
 ├── Proyecto3MetodosNumericos.ipynb        # Cuaderno principal (teoría + código)
+├── Animaciones/                           # GIF didácticos del cuaderno (generados con IA)
 ├── ParteExperimental/
 │   ├── RespuestaEscalonMotorDC/
 │   │   └── RespuestaEscalonMotorDC.ino    # Programa del Arduino Nano (captura del ensayo)
