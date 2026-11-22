@@ -23,10 +23,19 @@ $$
 ├── Proyecto3MetodosNumericos.ipynb        # Cuaderno principal (teoría + código)
 ├── Animaciones/                           # GIF didácticos del cuaderno (generados con IA)
 ├── ParteExperimental/
-│   ├── RespuestaEscalonMotorDC/
-│   │   └── RespuestaEscalonMotorDC.ino    # Programa del Arduino Nano (captura del ensayo)
-│   ├── captura_respuesta.py               # Receptor en la PC: datos del ensayo → CSV
-│   ├── Esquematico_MotorDC.svg            # Esquemático del circuito (editable en Inkscape)
+│   ├── MotorDC_L298N/
+│   │   └── MotorDC_L298N.ino              # Arduino Nano + L298N: captura rápida y PID
+│   ├── protocolo_motor.py                 # Protocolo serie (contraparte del .ino)
+│   ├── captura_respuesta.py               # Receptor: datos brutos de la captura rápida
+│   ├── postprocesamiento.py               # Posición, velocidad y corriente
+│   ├── modelo_motor.py                    # Modelo del motor (Euler y RK4) para el gemelo
+│   ├── arduino_simulado.py                # Arduino simulado para probar sin hardware
+│   ├── GemeloDigital/                     # Aplicación de escritorio (customtkinter)
+│   │   ├── app.py                         # python app.py
+│   │   ├── MANUAL.md                      # Manual de uso (cómo capturar datos)
+│   │   ├── estilo.py, pixel.py, graficas.py
+│   │   └── fuentes/                       # Fuentes pixeladas (ver LEEME.md)
+│   ├── Esquematico_MotorDC.svg            # Esquemático del circuito anterior (driver MOSFET)
 │   └── Simulaciones/                      # Simulaciones LTspice del driver del motor
 │       ├── ReporteSimulaciones.md         # Reporte con las formas de onda
 │       ├── correr_simulaciones.py         # Corre LTspice y genera las figuras

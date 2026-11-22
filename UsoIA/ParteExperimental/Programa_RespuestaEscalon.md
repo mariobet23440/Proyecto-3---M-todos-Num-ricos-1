@@ -1,5 +1,12 @@
 # Programa de captura: respuesta al escalón y a la desconexión del motor DC
 
+> [!NOTE]
+> **Versión 1 (driver MOSFET), reemplazada el 22/11/2026.** El autor cambió el driver por un L298N.
+> El programa se renombró a [`MotorDC_L298N.ino`](../../ParteExperimental/MotorDC_L298N/MotorDC_L298N.ino)
+> y se reescribió; ver [`Programa_L298N.md`](Programa_L298N.md) y la Entrada 12 de la bitácora.
+> Este documento y la copia del código que contiene se conservan como registro de la versión 1;
+> sus enlaces a `RespuestaEscalonMotorDC.ino` ya no existen en el repositorio (están en el historial de git).
+
 | Campo | Detalle |
 |-------|---------|
 | **Título** | Respuesta al escalón y a la desconexión de un motor DC JGA25-370 |

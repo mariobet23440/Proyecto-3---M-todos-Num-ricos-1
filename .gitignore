@@ -21,3 +21,6 @@ desktop.ini
 *.log
 *.op.raw
 *.net
+
+# Aplicación del gemelo digital: configuración local de cada computadora
+ParteExperimental/GemeloDigital/config_app.json

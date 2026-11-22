@@ -492,6 +492,82 @@ Después de cada push de la IA, abrir el cuaderno en Colab desde GitHub antes de
 
 ---
 
+## Entrada 12 — 22/11/2026 · Driver L298N, captura de datos brutos, PID y aplicación del gemelo digital
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`ParteExperimental/Programa_L298N.md`](ParteExperimental/Programa_L298N.md) · [`ParteExperimental/Controlador_PID.md`](ParteExperimental/Controlador_PID.md) (ambos tienen los prompts textuales) |
+
+### Solicitud
+1. **Programa del Arduino para el L298N** (ENB en D3, IN3 en D4, IN4 en D5, ACS712-5 en A0, encoder en D8 y D9):
+   - enviar los datos brutos de las fases del encoder y del sensor de corriente, a la frecuencia más alta posible;
+   - un receptor de Python que los guarde;
+   - otro script que calcule la posición, la velocidad y la corriente;
+   - decir qué hace falta para que funcione.
+2. **PID en el Arduino**, con memoria y modos de velocidad y de posición, y una **aplicación de Python** con:
+   - customtkinter, estilo oscuro y varias páginas;
+   - perillas para sintonizar el PID;
+   - botones de escalón, desconexión, seguimiento de un movimiento y captura de datos;
+   - las funciones del receptor anterior;
+   - una animación del motor en pixel art, con fuente pixelada;
+   - gráficas animadas con un cursor que avanza en el tiempo.
+3. Un md con el prompt textual del PID, que diga que la documentación está pendiente.
+4. Un manual de uso de la interfaz, con énfasis en cómo capturar datos (prompt textual en `Controlador_PID.md`).
+
+### Lo que hizo la IA
+- **Firmware** [`MotorDC_L298N.ino`](../ParteExperimental/MotorDC_L298N/MotorDC_L298N.ino). Antes era `RespuestaEscalonMotorDC.ino`; se renombró con `git mv`.
+  - **Captura rápida:** ≈ 76 923 muestras/s con tramas de 2 bytes de datos brutos (ADC, A, B). El límite lo pone el UART a 2 Mbaud.
+  - **Modo de tiempo real:** encoder ×4 por interrupción, periodo Ts con el Timer1, PID, generador de referencia y telemetría de 27 bytes.
+  - **Órdenes de texto** para configurar todo desde la computadora.
+- **Python** en `ParteExperimental/`:
+  - `protocolo_motor.py` (protocolo compartido);
+  - `captura_respuesta.py` (receptor; guarda `.bin`, `_crudo.csv` y `.json`);
+  - `postprocesamiento.py` (θ, ω por dos métodos, e i);
+  - `modelo_motor.py` (modelo del cuaderno con Euler y RK4);
+  - `arduino_simulado.py` (imita al firmware byte a byte para probar sin hardware).
+- **Aplicación** [`GemeloDigital/app.py`](../ParteExperimental/GemeloDigital/app.py), con seis páginas:
+  - conexión;
+  - tablero (gemelo en tiempo real);
+  - control PID;
+  - ensayos;
+  - captura;
+  - modelo.
+- **Manual** [`GemeloDigital/MANUAL.md`](../ParteExperimental/GemeloDigital/MANUAL.md): conexión, configuración, las tres formas de capturar datos (con los archivos y columnas que se guardan), cada página y problemas comunes.
+- **PID:** se implementó $u = K_p e + K_i T_s E + (K_d/T_s)\Delta e$ como forma por defecto. La forma literal del prompt ($K_i/T_s$, $K_d T_s$) quedó disponible con un interruptor. Ver la sección «Diferencia con la fórmula del prompt» de `Controlador_PID.md`.
+
+### Verificación
+- **Compilación:**
+  - avr-gcc 7.3.0, core AVR 1.8.6, con `-Wall -Wextra` y sin advertencias.
+  - 13 056 B de flash (39,8 %) y 692 B de RAM (33,8 %).
+- **Margen de tiempo:**
+  - La interrupción del ADC usa unos 114 de los 208 ciclos entre muestras (revisado en el ensamblador).
+  - Una simulación ciclo a ciclo del UART no muestra pérdidas.
+- **Decodificador y postprocesamiento** con datos sintéticos:
+  - recuperan exactamente las cuentas;
+  - se resincronizan tras perder un byte;
+  - la velocidad por flancos tiene un error medio de 0,37 %.
+- **Aplicación con el Arduino simulado:**
+  - el PID de velocidad sigue una onda cuadrada;
+  - el escalón y el seguimiento de una senoidal de posición se guardan y se reproducen;
+  - no hubo excepciones.
+  - Se perfiló y se optimizó el dibujo para que la interfaz no se atrase.
+
+### Lo que la IA NO hizo o no pudo verificar
+- **No probó nada con el hardware real.** Tampoco verificó 2 Mbaud con el adaptador del equipo.
+- **No sintonizó el PID del motor real.** Las ganancias iniciales son de prueba.
+- **No identificó los parámetros del modelo.** Son de ejemplo, salvo R = 6 Ω; L = 2 mH es supuesto.
+- **No actualizó el esquemático** `Esquematico_MotorDC.svg` ni las simulaciones LTspice. Corresponden al driver MOSFET anterior.
+- **No incluyó los archivos de fuentes pixeladas** (hay que descargarlos; ver `GemeloDigital/fuentes/LEEME.md`).
+- **No escribió la documentación completa del PID.** El autor pidió dejarla pendiente.
+- **No hizo commit ni push.**
+
+### Decisiones del equipo
+- *(pendiente: forma del PID, estándar o la del prompt, e interpretación de E_k)*
+
+---
+
 ## Plantilla para nuevas entradas
 
 ```markdown
