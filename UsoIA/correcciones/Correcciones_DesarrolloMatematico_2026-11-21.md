@@ -28,11 +28,8 @@
 Cada integrante que revise este documento llena una fila.
 
 | Nombre del revisor | Carné | Fecha de revisión | Correcciones revisadas | Firma / iniciales |
-|--------------------|-------|-------------------|------------------------|-------------------|
-| | | | | |
-| | | | | |
-| | | | | |
-| | | | | |
+|Mario Alejandro Betancourt Franco|23440|22/11/2026 a las 00:10 AM|Conceptuales (C-01 a C-04)|MBF (sí, yo leí esto)|
+
 
 ---
 
