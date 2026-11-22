@@ -27,7 +27,7 @@ Registro de cada uso de herramientas de inteligencia artificial en el Proyecto 3
   - **4 errores conceptuales.** Entre ellos: la igualdad $\mathbf{y}' = J\mathbf{y}$ de la sección 1.2 confunde el Jacobiano con el campo vectorial $\mathbf{f}$; la forma $(1+hJ)\mathbf{y}_k$ solo vale para sistemas lineales; el símbolo $J$ se usa para la inercia y para el Jacobiano; y hay un índice incorrecto ($\mathbf{y}_{k+1}$ por $\mathbf{y}_k$) en la ecuación del error de 1.4.
   - **4 imprecisiones.** Linealización de $\mathbf f$, justificación para descartar el error de truncamiento, resto de Taylor vectorial, y no diferenciabilidad de $\operatorname{sign}(\omega)$.
   - **8 observaciones de notación, LaTeX y redacción.**
-  - El detalle está en [`Correcciones_DesarrolloMatematico_2026-11-21.md`](Correcciones_DesarrolloMatematico_2026-11-21.md) (ver Entrada 2).
+  - El detalle está en [`correcciones/Correcciones_DesarrolloMatematico_2026-11-21.md`](correcciones/Correcciones_DesarrolloMatematico_2026-11-21.md) (ver Entrada 2).
 - **Organización del repositorio.**
   - Creó `README.md` con la descripción del proyecto, el botón de Colab y la estructura.
   - Creó `.gitignore` para Jupyter, Python y archivos del sistema operativo.
@@ -61,7 +61,7 @@ Al listar los archivos, la IA dijo que parecía faltar la sección 1.3. Era un e
 4. **No aplicar las correcciones al cuaderno.** Van en un documento aparte.
 
 ### Lo que hizo la IA
-- **Documento de correcciones.** Creó [`correcciones/Correcciones_DesarrolloMatematico_2026-11-21.md`](Correcciones_DesarrolloMatematico_2026-11-21.md), con:
+- **Documento de correcciones.** Creó [`correcciones/Correcciones_DesarrolloMatematico_2026-11-21.md`](correcciones/Correcciones_DesarrolloMatematico_2026-11-21.md), con:
   - el aviso de aprobación obligatoria por el equipo;
   - una tabla para los datos de los revisores;
   - 16 correcciones (C-01 a C-16), cada una con ubicación, texto original, corrección propuesta, justificación, una casilla de decisión (aprobada / con cambios / rechazada) y un espacio para comentarios;
@@ -80,6 +80,51 @@ Al listar los archivos, la IA dijo que parecía faltar la sección 1.3. Era un e
 
 ### Decisiones del equipo
 - *(pendiente: anotar qué correcciones se aprueban, cuáles se rechazan y por qué. Ver la tabla "Resumen de decisiones" del documento de correcciones)*
+
+---
+
+## Entrada 3 — 22/11/2026
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Material proporcionado** | PDF de N. S. Nise, *Control Systems Engineering*, 7.ª ed. (copia local del equipo) |
+
+### Solicitud
+1. Poner las correcciones en una carpeta de uso de IA.
+2. Agregar la referencia al libro de Norman Nise en un archivo `.md` de referencias, enlazado desde el documento de correcciones.
+3. Hacer commit de esos cambios.
+
+### Lo que hizo la IA
+- **Reorganización.** Movió todo a la carpeta `UsoIA/`:
+  - `UsoIA/BitacoraUsoIA.md` (esta bitácora);
+  - `UsoIA/correcciones/Correcciones_DesarrolloMatematico_2026-11-21.md`;
+  - `UsoIA/correcciones/Referencias.md` (nuevo).
+- **Consulta del libro.** Revisó en el PDF:
+  - la página legal (edición, año, editorial e ISBN);
+  - el índice;
+  - las secciones §2.8 (motor DC, pp. 77–83), §2.10 (no linealidades, pp. 86–87) y §2.11 (linealización);
+  - la nota al pie 8 de la p. 65 (fricción viscosa, no de Coulomb).
+- **Referencias.md.** Contiene:
+  - la referencia en formatos IEEE y APA, con ISBN;
+  - una tabla con las secciones y páginas relevantes y su relación con el proyecto;
+  - las equivalencias de notación entre Nise y el cuaderno;
+  - las citas sugeridas para las celdas 7 y 8.
+- **Documento de correcciones.**
+  - **C-15** queda verificada: el motor DC está en el cap. 2, §2.8, no en el cap. 4 como decía el cuaderno.
+  - **C-03** y **C-16** tienen ahora respaldo del libro: la notación $J_m$ y la igualdad $K_t = K_b$ en unidades consistentes.
+  - Se actualizaron los enlaces a la nueva estructura.
+- **Commit local** con estos cambios.
+
+### Lo que la IA NO hizo
+- **No modificó el cuaderno.**
+- **No subió el PDF del libro**, porque está protegido por derechos de autor. Solo se cita.
+- **No hizo push** a GitHub; solo el commit local.
+- **No incluyó `README.md` ni `.gitignore`** en el commit.
+
+### Decisiones del equipo
+- *(pendiente)*
 
 ---
 
