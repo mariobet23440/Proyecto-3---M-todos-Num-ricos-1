@@ -317,6 +317,81 @@ El revisor aprobó C-01 con ese mismo argumento.
 
 ---
 
+## Entrada 8 — 22/11/2026 · Referencia a Nise en el cuaderno
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+
+### Solicitud
+```text
+Hey podrías actualizar la parte de la referencia de Nise en el cuadernillo principal
+```
+
+### Lo que hizo la IA
+- **Celda 7 (Introducción):** reemplazó el texto pendiente "(AGREGAR REFERENCIA POR FAVOR, capítulo 4 no recuerdo donde estaba)" por la cita *"véase Nise [1, cap. 2, §2.8, pp. 77–83]"*, presentada como referencia del modelo **en su versión lineal**.
+- **Celda 8:** reemplazó "(no sé, no sé, no sé)" por *"[1, §2.8]"* en la comparación con el modelo lineal.
+- **Celda nueva al final:** agregó la sección **REFERENCIAS** con la entrada en formato IEEE: N. S. Nise, *Control Systems Engineering*, 7th ed., Wiley, 2015.
+- **Historial de revisiones del cuaderno:** agregó la línea del cambio.
+- **Documento de correcciones:** actualizó la fila de C-15 en el resumen de decisiones.
+
+### Criterio
+- **Qué se cita:** solo lo que el libro cubre, el modelo lineal del motor DC controlado por armadura (§2.8). No se presenta como respaldo de la fricción de Coulomb ni de los métodos numéricos (ver Entrada 4).
+- **Coherencia con la revisión:** C-15 se había rechazado porque Nise "se utiliza únicamente para comparar el modelo con un modelo lineal". La cita respeta ese uso.
+- **Datos verificados:** el capítulo, la sección y las páginas se tomaron del PDF de la 7.ª edición que tiene el equipo (Entrada 3).
+
+### Lo que la IA NO hizo
+- No cambió otro texto del cuaderno ni las fórmulas.
+- No hizo commit ni push.
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
+## Entrada 9 — 22/11/2026 · Secciones 1.4 y 1.5 (estabilidad, Jacobiano y Lipschitz)
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`redacciones/Secciones_1.4_y_1.5.md`](redacciones/Secciones_1.4_y_1.5.md) (prompts textuales y copia del texto) |
+
+### Solicitud
+```text
+Ok. Quisiera que me ayudes redactando eso. Ya entiendo qué sucede. Cometí el error de utilizarlo en la deducción del método de Euler. Entiendo que lo usas en la parte de estabilidad porque f(Y)-f(y) approx J(Y-y) = Je y de ahi resulta lo que normalmente se obtiene. Aprovechando que introdujiste la condición de Lipschitz, quisiera que lo incluyas también, definiendo lo que significa que una función sea Lipschitz (que sea una transformación entre espacios métricos que no explote en el siguiente paso). Quisiera que también definas qué es el espacio métrico y su relación con funciones distancia. La parte de Lipschitz quisiera que vaya en una subsección más, la sección 1.5, dado que es un bonus que generaliza la solución de la estabilidad del método. Incluye este Prompt, corrige mi observación sobre C-01 y sube todo al repositorio
+```
+
+### Contexto
+El autor había quitado el Jacobiano de su borrador de la 1.4 por ser el sistema no lineal, y preguntó por qué se descartaba $\mathbf T_k$. La IA le explicó tres cosas:
+- **$\mathbf f$ y el Jacobiano tienen papeles distintos:** $\mathbf f$ se usa para calcular la solución, y el Jacobiano para analizar el error.
+- **$\mathbf T_k$ no se ignora:** es una fuente de error, y no decide la estabilidad.
+- **Sin derivadas, sirve la condición de Lipschitz**, y la $	anh$ hace al modelo diferenciable.
+
+### Lo que hizo la IA
+- **Sección 1.4** del cuaderno, reescrita sobre el borrador del autor:
+  - corrigió la descripción de los componentes del error y la definición de estabilidad;
+  - explicó el papel del Jacobiano y por qué la estabilidad no depende de $\mathbf T_k$;
+  - incluyó el criterio $|1 + h\lambda_i| \le 1$ y el Jacobiano del motor con la fricción regularizada con $	anh$.
+- **Sección 1.5 nueva (bonus):** espacio métrico y función distancia, funciones Lipschitz, relación con el Jacobiano, cota del error global de Euler, alcances y limitaciones.
+- **Historial de revisiones del cuaderno:** se agregó la línea del cambio.
+- **Comentario del revisor en C-01:** se corrigió, a pedido del autor, para reflejar el entendimiento actual (el error fue usar el Jacobiano en la deducción del método; el Jacobiano pertenece al análisis de estabilidad). La versión original queda en el historial de git.
+- **Verificación:** las 240 expresiones LaTeX del cuaderno compilan en MathJax sin errores.
+
+### Lo que la IA NO hizo
+- **No calculó los valores propios del motor:** el autor dijo que eso lo revisaría él (C-06).
+- **No modificó otras celdas del cuaderno.**
+- **No cambió el comentario del revisor en C-02**, aunque contiene una imprecisión: dice que el sistema es no lineal "por los términos constantes". Los términos constantes lo hacen afín; la no linealidad viene de $	ext{sign}(\omega)$. Queda para que el autor decida.
+
+### Advertencia
+La versión del cuaderno en Colab del autor tenía cambios en la 1.4 que no estaban en GitHub. El texto subido incluye ese borrador de la 1.4, pero si en Colab hay cambios en otras celdas, hay que copiarlos antes de recargar el cuaderno desde GitHub.
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
 ## Plantilla para nuevas entradas
 
 ```markdown

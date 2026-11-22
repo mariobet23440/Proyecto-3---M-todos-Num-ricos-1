@@ -119,9 +119,13 @@ $$
 - El Jacobiano que de verdad importa es $\partial\mathbf f/\partial\mathbf y$ (matriz $N\times N$). Es el que se usa, correctamente, en la sección 1.4 (ver C-05).
 
 **Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:** Es correcto. Yo confundí el campo vectorial por el Jacobiano. Esto podría deberse a que consulté a la IA de Google sobre la resolución de sistemas de ecuaciones diferenciales y el criterio de estabilidad numérica del método de Euler, y la IA presentó únicamente resultados para sistemas lineales y autónomos (no como el sistema del motor). En ese caso, la igualdad se cumple. Este caso es común en la presentación de la estabilidad numérica del método de Euler. Sin embargo, después de intentar sacar el Jacobiano para el sistema del motor, se encontró que era imposible meter los términos constantes dentro de la matriz jacobiana. Por lo tanto, este contraejemplo justifica la decisión de aplicar la corrección. 
+**Comentario del revisor:** Es correcto. Mi error fue usar el Jacobiano en la deducción del método de Euler, en el lugar del campo vectorial $\mathbf f$. El campo vectorial y el Jacobiano cumplen papeles distintos:
+- **El método se escribe siempre con $\mathbf f$**, sea el sistema lineal o no: $\mathbf y_{k+1} = \mathbf y_k + h\,\mathbf f(x_k,\mathbf y_k)$.
+- **El Jacobiano $\mathbf J = \partial\mathbf f/\partial\mathbf y$ es la derivada de $\mathbf f$** y pertenece al análisis de estabilidad. Ahí aparece la diferencia $\mathbf f(x_k,\mathbf Y(x_k)) - \mathbf f(x_k,\mathbf y_k) \approx \mathbf J\,(\mathbf Y - \mathbf y) = \mathbf J\,\mathbf e_k$, y de ella sale el resultado usual $\mathbf e_{k+1} \approx (\mathbf I + h\mathbf J)\,\mathbf e_k + \mathbf T_k$.
 
-En pocas palabras. Si intentamos sacar el jacobiano del sistema, donde aparecen términos constantes que se suman y restan, ¿dónde caben en el jacobiano? ¡En ninguna parte! y por lo tanto, mi intuición inicial estaba equivocada y no tenía pies ni cabeza. 
+La confusión pudo venir de que consulté la IA de Google sobre la estabilidad numérica del método de Euler, y presentó únicamente sistemas lineales y autónomos, $\mathbf y' = A\mathbf y$. En ese caso $\mathbf f(\mathbf y) = A\mathbf y$, el Jacobiano coincide con $A$ y la igualdad $\mathbf y' = \mathbf J\mathbf y$ sí se cumple. En el motor no: los términos constantes ($V/L$ y $-\tau_{carga}/J_m$) desaparecen al derivar, así que $\mathbf f(\mathbf y) \neq \mathbf J\mathbf y$. Por eso no "caben" en el Jacobiano: no es que falten en él, sino que el Jacobiano describe cómo cambia $\mathbf f$, no a $\mathbf f$ misma.
+
+*(Comentario corregido el 22/11/2026 a pedido del revisor, con asistencia de IA; ver la Entrada 9 de la bitácora. La versión original está en el historial de git.)*
 
 PROMPT UTILIZADO PARA ARREGLAR: Por favor reemplazar todas las apariciones del Jacobiano en las deducciones del método por el campo vectorial f, excepto en la sección de análisis de estabilidad.
 
@@ -530,7 +534,7 @@ Llenada por la IA a pedido del revisor, a partir de las decisiones y los comenta
 | C-12 | | | X | No se aplica: se mantiene $x$ como variable independiente en las demostraciones generales |
 | C-13 | X | | | `760c312`: incluye la nota opcional de que el modelo del motor ya es de primer orden |
 | C-14 | X | | | `760c312` |
-| C-15 | | | X | No se aplica: Nise se usa solo para comparar con un modelo lineal, no como base del proyecto |
+| C-15 | | | X | No se aplicó en la revisión: Nise se usa solo para comparar con un modelo lineal, no como base del proyecto. **Después el autor pidió completar la cita** (22/11/2026, Entrada 8 de la bitácora): se citó solo como referencia del modelo lineal |
 | C-16 | X | | | `760c312`: no se aplicaron "completar integrantes" (la IA no conoce los nombres) ni la observación física opcional $K_e = K_t$ (el cuaderno aún no tiene parámetros) |
 
 ---

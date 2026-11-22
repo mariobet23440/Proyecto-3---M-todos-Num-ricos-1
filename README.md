@@ -34,6 +34,7 @@ $$
 ├── UsoIA/
 │   ├── BitacoraUsoIA.md                   # Registro del uso de herramientas de IA
 │   ├── correcciones/                      # Revisión del desarrollo matemático
+│   ├── redacciones/                       # Textos del cuaderno redactados con IA (con sus prompts)
 │   └── ParteExperimental/                 # Prompts y documentación de la parte experimental
 ├── README.md
 ├── LICENSE                                # MIT
