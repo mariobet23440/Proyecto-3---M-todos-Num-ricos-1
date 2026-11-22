@@ -61,7 +61,7 @@ CONFIG_INICIAL = {
     "ppr": 11.0, "reduccion": 1.0, "vref": 5.0, "sensibilidad": 0.185, "cero_adc": 512.0,
     "invertir_encoder": False, "invertir_corriente": False,
     "kp": 0.05, "ki": 0.0, "kd": 0.0, "ts_ms": 2.0, "tau_ms": 8.0,
-    "antiwindup": True, "forma_prompt": False, "envio_automatico": True,
+    "antiwindup": True, "envio_automatico": True,
     "modo_pid": 2, "ref_tipo": 0, "ref_amp": 0.0, "ref_off": 100.0, "ref_f": 0.5,
     "cap_pwm": 255, "cap_sentido": 1, "cap_freno": 0, "cap_t0": 200, "cap_t1": 1500, "cap_t2": 1500,
     "seguir_modo": 3, "seguir_tipo": 1, "seguir_amp": 6.28, "seguir_off": 0.0, "seguir_f": 0.5,
@@ -325,7 +325,6 @@ class App(ctk.CTk):
         self.enviar("F", float(c["tau_ms"]))
         self.enviar("K", float(c["kp"]), float(c["ki"]), float(c["kd"]))
         self.enviar("A", int(c["antiwindup"]))
-        self.enviar("Q", int(c["forma_prompt"]))
         self.enviar("?")
         self._k_prev = None
 
@@ -569,7 +568,7 @@ class PaginaConexion(Pagina):
         self.c_orden.pack(side="left", fill="x", expand=True)
         self.c_orden.bind("<Return>", lambda e: self._orden_manual())
         boton(fila, "ENVIAR", self._orden_manual, E.CIAN, ancho=110, alto=30).pack(side="left", padx=6)
-        etiqueta(der, "Ordenes: ? H X M K T F P R A Q S Z C E (ver la seccion 8 del .ino)", E.TENUE).pack(
+        etiqueta(der, "Ordenes: ? H X M K T F P R A S Z C E (ver la seccion 8 del .ino)", E.TENUE).pack(
             anchor="w", padx=10, pady=(0, 8))
         self.buscar_puertos()
         self._actualizar_cpr()
@@ -750,8 +749,6 @@ class PaginaPID(Pagina):
             p.grid(row=k // 3, column=k % 3, padx=4, pady=4)
         self.sw_aw, self.v_aw = interruptor(m, "ANTI-WINDUP (CONGELA E_K AL SATURAR)", cfg["antiwindup"], self._opciones)
         self.sw_aw.pack(anchor="w", padx=10, pady=2)
-        self.sw_forma, self.v_forma = interruptor(m, "FORMA DEL PROMPT (KI/TS, KD*TS)", cfg["forma_prompt"], self._opciones)
-        self.sw_forma.pack(anchor="w", padx=10, pady=2)
         self.sw_auto, self.v_auto = interruptor(m, "ENVIAR AL SOLTAR LA PERILLA", cfg["envio_automatico"])
         self.sw_auto.pack(anchor="w", padx=10, pady=(2, 10))
 
@@ -795,10 +792,7 @@ class PaginaPID(Pagina):
         return self.MODOS[self.seg_modo.get()]
 
     def _formula(self):
-        if self.v_forma.get():
-            texto = "u = Kp e + (Ki/Ts) E + Kd Ts (e - e_ant)   [FORMA DEL PROMPT]"
-        else:
-            texto = "u = Kp e + Ki Ts E + (Kd/Ts) (e - e_ant)   [FORMA ESTANDAR]"
+        texto = "u = Kp e + Ki Ts E + (Kd/Ts) (e - e_ant)"
         unidad = {1: "", 2: "  e en rad/s", 3: "  e en rad"}[self.modo()]
         self.lbl_formula.configure(text=texto + "\nE = E_ant + e   u en V" + unidad)
 
@@ -834,9 +828,8 @@ class PaginaPID(Pagina):
 
     def _opciones(self):
         cfg = self.app.cfg
-        cfg["antiwindup"], cfg["forma_prompt"] = self.v_aw.get(), self.v_forma.get()
+        cfg["antiwindup"] = self.v_aw.get()
         self.app.enviar("A", int(cfg["antiwindup"]))
-        self.app.enviar("Q", int(cfg["forma_prompt"]))
         self._formula()
 
     def _referencia(self):
@@ -861,7 +854,6 @@ class PaginaPID(Pagina):
         a.enviar("F", float(cfg["tau_ms"]))
         a.enviar("K", float(cfg["kp"]), float(cfg["ki"]), float(cfg["kd"]))
         a.enviar("A", int(self.v_aw.get()))
-        a.enviar("Q", int(self.v_forma.get()))
         a.enviar("R", cfg["ref_tipo"], float(cfg["ref_amp"]), float(cfg["ref_off"]), float(cfg["ref_f"]))
         a.enviar("M", self.modo())
         a.guardar_cfg()

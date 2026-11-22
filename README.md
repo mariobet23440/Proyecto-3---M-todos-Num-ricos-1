@@ -35,12 +35,7 @@ $$
 │   │   ├── MANUAL.md                      # Manual de uso (cómo capturar datos)
 │   │   ├── estilo.py, pixel.py, graficas.py
 │   │   └── fuentes/                       # Fuentes pixeladas (ver LEEME.md)
-│   ├── Esquematico_MotorDC.svg            # Esquemático del circuito anterior (driver MOSFET)
-│   └── Simulaciones/                      # Simulaciones LTspice del driver del motor
-│       ├── ReporteSimulaciones.md         # Reporte con las formas de onda
-│       ├── correr_simulaciones.py         # Corre LTspice y genera las figuras
-│       ├── *.cir, *.inc, modelos/         # Netlists y modelos SPICE
-│       └── figuras/
+│   └── Esquematico_MotorDC.svg            # Esquemático del circuito con L298N (editable en Inkscape)
 ├── UsoIA/
 │   ├── BitacoraUsoIA.md                   # Registro del uso de herramientas de IA
 │   ├── correcciones/                      # Revisión del desarrollo matemático

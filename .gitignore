@@ -16,11 +16,6 @@ desktop.ini
 .vscode/
 .idea/
 
-# Salidas de LTspice (se regeneran con correr_simulaciones.py)
-*.raw
-*.log
-*.op.raw
-*.net
 
 # Aplicación del gemelo digital: configuración local de cada computadora
 ParteExperimental/GemeloDigital/config_app.json

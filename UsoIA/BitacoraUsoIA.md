@@ -564,7 +564,54 @@ Después de cada push de la IA, abrir el cuaderno en Colab desde GitHub antes de
 - **No hizo commit ni push.**
 
 ### Decisiones del equipo
-- *(pendiente: forma del PID, estándar o la del prompt, e interpretación de E_k)*
+- 22/11/2026: el autor pidió corregir el PID. Queda solo la forma $u = K_p e + K_i T_s E + (K_d/T_s)\Delta e$, con $E_k = E_{k-1} + e_k$ (ver Entrada 13).
+
+---
+
+## Entrada 13 — 22/11/2026 · PID corregido, esquemático con L298N y retiro de las simulaciones
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`ParteExperimental/Controlador_PID.md`](ParteExperimental/Controlador_PID.md) · [`ParteExperimental/Esquematico_Circuito.md`](ParteExperimental/Esquematico_Circuito.md) · [`ParteExperimental/Simulaciones_Driver.md`](ParteExperimental/Simulaciones_Driver.md) |
+
+### Solicitud
+```text
+Corrige el PID, y los esquemáticos. Ya no necesito simulaciones (quítalas)
+```
+
+### Lo que hizo la IA
+- **PID:** se dejó solo la forma $u_k = K_p e_k + K_i T_s E_k + (K_d/T_s)(e_k - e_{k-1})$, con $E_k = E_{k-1} + e_k$. Se quitó la forma del prompt ($K_i/T_s$, $K_d T_s$) de:
+  - el firmware (constante `FORMA_DEL_PROMPT` y orden `Q`);
+  - la aplicación (interruptor);
+  - el Arduino simulado;
+  - el manual.
+- **Esquemático** [`Esquematico_MotorDC.svg`](../ParteExperimental/Esquematico_MotorDC.svg), redibujado para el L298N con los pines del programa:
+  - ENB en D3, IN3 en D4 e IN4 en D5;
+  - el ACS712-5 en serie con el motor (OUT3 → IP+ → IP− → M1+) y su salida en A0;
+  - el encoder en D8 y D9;
+  - la fuente de 12 V en el módulo y la tierra común.
+
+  Se mantuvo el estilo ElCompLib y se usaron etiquetas de red para evitar cruces. El md del esquemático conserva los prompts de la versión 1.
+- **Simulaciones:** se borró `ParteExperimental/Simulaciones/`: netlists, modelos, script, figuras, reporte y las salidas de LTspice no versionadas. También se quitaron las reglas de LTspice del `.gitignore` y la carpeta del README. `Simulaciones_Driver.md` y las Entradas 7 y 6 se conservan como registro, con una nota.
+
+### Verificación
+- **Firmware:** compila sin advertencias. Usa 12 926 B de flash (39,4 %) y 691 B de RAM (33,7 %).
+- **Arduino simulado:**
+  - la orden `Q` ahora responde `# ERR`;
+  - el PID de velocidad llega a 300,05 rad/s con referencia 300;
+  - el de posición llega a 9,996 rad con referencia 10.
+- **Aplicación:** recorre las seis páginas, el escalón y el seguimiento sin errores.
+- **Esquemático:** revisado visualmente en el navegador.
+
+### Lo que la IA NO hizo
+- **No quitó el Arduino simulado** (`arduino_simulado.py`). Es parte de la aplicación y no es una simulación de LTspice.
+- **No probó el circuito ni el PID con el hardware real.**
+- **No hizo push.**
+
+### Decisiones del equipo
+- *(pendiente)*
 
 ---
 

@@ -45,13 +45,13 @@ class ArduinoSimulado:
         # Estado del "firmware"
         self.modo, self.kp, self.ki, self.kd = 0, 0.05, 0.0, 0.0
         self.ts_ms, self.tau_ms, self.cpr, self.vbus = 2.0, 8.0, 44.0, self.p.v_bus
-        self.aw, self.forma_prompt = True, False
+        self.aw = True
         self.ref = (0, 0.0, 0.0, 0.0)
         self.decimacion = 1
         self.cap = [255, 1, 0, 200, 1500, 1500]
         self._reiniciar_estado()
         self._ultima_orden = time.time()
-        self._escribir_texto("# LISTO Motor JGA25-370 con L298N (SIMULADO). Ordenes: ? H X M K T F P R A Q S Z C E")
+        self._escribir_texto("# LISTO Motor JGA25-370 con L298N (SIMULADO). Ordenes: ? H X M K T F P R A S Z C E")
         self._escribir_cfg()
         self._hilo = threading.Thread(target=self._correr, daemon=True)
         self._hilo.start()
@@ -101,7 +101,7 @@ class ArduinoSimulado:
         self._escribir_texto(
             f"# CFG modo={self.modo} kp={self.kp:.6f} ki={self.ki:.6f} kd={self.kd:.6f} ts_ms={self.ts_ms:.3f} "
             f"tau_ms={self.tau_ms:.3f} cpr={self.cpr:.3f} vbus={self.vbus:.3f} aw={int(self.aw)} "
-            f"forma_prompt={int(self.forma_prompt)} ref_tipo={tipo} ref_amp={amp:.4f} ref_off={off:.4f} "
+            f"ref_tipo={tipo} ref_amp={amp:.4f} ref_off={off:.4f} "
             f"ref_f={f:.4f} decimacion={self.decimacion} cap_pwm={self.cap[0]} cap_sentido={self.cap[1]} "
             f"cap_freno={self.cap[2]} cap_t0={self.cap[3]} cap_t1={self.cap[4]} cap_t2={self.cap[5]} "
             f"fs_rapida_hz={FS_RAPIDA:.3f} f_pwm_hz=490.2")
@@ -134,8 +134,6 @@ class ArduinoSimulado:
             self.ref = (int(v[0]), v[1], v[2], v[3]); self.k_ref = 0
         elif letra == "A" and v:
             self.aw = v[0] != 0
-        elif letra == "Q" and v:
-            self.forma_prompt = v[0] != 0; self._reiniciar_pid()
         elif letra == "S" and v and 0 <= v[0] <= 255:
             self.decimacion = int(v[0])
         elif letra == "Z":
@@ -209,9 +207,8 @@ class ArduinoSimulado:
             y = self.vel if self.modo == 2 else cuenta * q
             e = r - y
             nuevo = self.E + e
-            gi = self.ki / ts if self.forma_prompt else self.ki * ts
-            gd = self.kd * ts if self.forma_prompt else self.kd / ts
-            pd = self.kp * e + gd * (e - self.e_ant)
+            gi = self.ki * ts                                  # u = Kp e + Ki Ts E + (Kd/Ts) Δe
+            pd = self.kp * e + (self.kd / ts) * (e - self.e_ant)
             u = pd + gi * nuevo
             if self.aw and abs(u) > self.vbus and (u > 0) == (e > 0):
                 u = pd + gi * self.E

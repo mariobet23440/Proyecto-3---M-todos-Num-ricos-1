@@ -116,7 +116,7 @@ python ParteExperimental/captura_respuesta.py SIM --procesar      (sin hardware:
 
 - **Compilación:**
   - avr-gcc 7.3.0, core AVR 1.8.6 (Nano), con `-Wall -Wextra` y sin advertencias.
-  - Versión final con PID: 13 056 B de flash (39,8 %) y 692 B de RAM (33,8 %).
+  - Versión con PID corregido: 12 926 B de flash (39,4 %) y 691 B de RAM (33,7 %).
 - **Decodificador** (200 000 tramas sintéticas):
   - recupera exactamente el ADC, el bit del motor y la cuenta del encoder;
   - con un byte perdido y uno basura, se resincroniza y pierde una sola trama.

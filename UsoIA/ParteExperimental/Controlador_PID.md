@@ -60,7 +60,7 @@ $$
 e_k = r_k - y_k, \qquad E_k = E_{k-1} + e_k
 $$
 
-   La medición $y_k$ es la velocidad (modo velocidad) o la posición (modo posición). El prompt escribe «E_k = E_k - 1»; se interpretó como $E_k = E_{k-1} + e_k$, el error acumulado. **El equipo debe confirmarlo.**
+   La medición $y_k$ es la velocidad (modo velocidad) o la posición (modo posición). El prompt escribe «E_k = E_k - 1»; se corrigió a $E_k = E_{k-1} + e_k$, el error acumulado (ver «Corrección de la fórmula del prompt»).
 
 5. **Calcula el voltaje y lo aplica** con el PWM de ENB, saturado a $\pm V_{bus}$:
 
@@ -70,23 +70,29 @@ $$
 
 6. **Guarda** $e_k$ como $e_{k-1}$ del siguiente periodo y envía una trama de telemetría.
 
-### Diferencia con la fórmula del prompt (para que el equipo decida)
+### Corrección de la fórmula del prompt
 
-El prompt pide $\dfrac{K_i}{T_s}E_k$ y $K_d\,T_s\,(e_k - e_{k-1})$. La IA dejó como **forma por defecto** la de arriba, $K_i T_s E_k$ y $\dfrac{K_d}{T_s}(e_k - e_{k-1})$, por esta razón:
+El prompt pedía $\dfrac{K_i}{T_s}E_k$ y $K_d\,T_s\,(e_k - e_{k-1})$, con $T_s$ al revés en los dos términos:
 
 - $T_s E_k = T_s\sum e_j$ es la suma de rectángulos que aproxima $\int e\,dt$.
 - $(e_k - e_{k-1})/T_s$ es la diferencia hacia atrás que aproxima $de/dt$.
 
-Con la forma del prompt, $K_i$ y $K_d$ quedan multiplicados por $1/T_s^2$ y por $T_s^2$ respecto de las ganancias continuas, y cambiar $T_s$ cambiaría el controlador.
+Con la forma del prompt, $K_i$ y $K_d$ quedaban multiplicados por $1/T_s^2$ y por $T_s^2$ respecto de las ganancias continuas, y cambiar $T_s$ cambiaba el controlador.
 
-**La forma del prompt está implementada:** se activa con el interruptor «FORMA DEL PROMPT» de la página CONTROL PID (orden `Q 1`), o con la constante `FORMA_DEL_PROMPT = true` del .ino. La decisión es del equipo.
+**Historial:**
+
+1. En la primera versión, la IA dejó la forma correcta por defecto y la del prompt detrás de un interruptor, para que el equipo decidiera.
+2. El 22/11/2026 el autor pidió «Corrige el PID» (Entrada 13 de la bitácora).
+3. Se dejó **solo la forma correcta**:
+   - se quitaron el interruptor de la aplicación, la orden `Q` y la constante `FORMA_DEL_PROMPT` del firmware;
+   - se quitó también la misma opción del Arduino simulado.
 
 ### Agregados que el prompt no pidió
 
 Se pueden quitar o desactivar.
 
 - **Anti-windup por integración condicional:** si $u$ se satura y el error lo empujaría más allá del límite, $E_k$ no cambia en ese periodo. Interruptor «ANTI-WINDUP» (orden `A 0` para desactivarlo).
-- **Memoria en cero al cambiar de modo, de $T_s$ o de forma:** $E_k$ y $e_{k-1}$ vuelven a cero.
+- **Memoria en cero al cambiar de modo o de $T_s$:** $E_k$ y $e_{k-1}$ vuelven a cero.
 - **Seguridad:** si la aplicación deja de enviar el latido `H` durante 2 s, el motor pasa a reposo.
 - **Modo lazo abierto:** la referencia es directamente el voltaje. Sirve para probar el driver sin el PID.
 
@@ -115,5 +121,4 @@ Por favor haz un manual describiendo cómo utilizar la interfaz. Sé que está b
 
 - **Documentación completa de esta parte.**
 - **Pruebas con el hardware real** y sintonización de las ganancias.
-- **Decisión del equipo** sobre la forma del PID (estándar o la del prompt) y sobre $E_k = E_{k-1} + e_k$.
 - **Parámetros del modelo:** los de `modelo_motor.py` son de ejemplo (solo R = 6 Ω viene del autor, y L = 2 mH es supuesto). Hay que identificarlos con los ensayos.

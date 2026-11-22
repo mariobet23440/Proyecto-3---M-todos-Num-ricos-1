@@ -51,8 +51,9 @@
  *       e_k = r_k - y_k                      (error)
  *       E_k = E_{k-1} + e_k                  (error acumulado: memoria)
  *       u_k = Kp·e_k + Ki·Ts·E_k + (Kd/Ts)·(e_k - e_{k-1})
- *     La constante FORMA_DEL_PROMPT (o la orden 'Q 1') cambia los dos últimos
- *     términos a la forma escrita en el prompt: (Ki/Ts)·E_k y Kd·Ts·(e_k - e_{k-1}).
+ *     Ts·E_k aproxima la integral del error (suma de rectángulos) y
+ *     (e_k - e_{k-1})/Ts su derivada (diferencia hacia atrás). El prompt tenía
+ *     Ki/Ts y Kd·Ts; el autor pidió corregirlo a esta forma.
  *
  *  Protocolo serie (2 000 000 baudios): ver la sección 8 y
  *  ParteExperimental/protocolo_motor.py, que es su contraparte en Python.
@@ -158,7 +159,7 @@ const uint8_t  CICLO_TRABAJO_PWM   = 255;    // PWM del escalón (255 = voltaje 
 const bool     SENTIDO_ADELANTE    = true;   // true: IN3 = 1, IN4 = 0
 const bool     APAGADO_CON_FRENO   = false;  // false: motor libre; true: freno dinámico
 
-// --- Controlador (órdenes 'K', 'T', 'F', 'P', 'A', 'Q') ---
+// --- Controlador (órdenes 'K', 'T', 'F', 'P', 'A') ---
 const float    KP_INICIAL     = 0.05f;   // V por unidad de error
 const float    KI_INICIAL     = 0.0f;    // V por (unidad de error · s)
 const float    KD_INICIAL     = 0.0f;    // V·s por unidad de error
@@ -172,9 +173,6 @@ const float    TAU_INICIAL_MS = 8.0f;    // Constante de tiempo del filtro de ve
 const float    CUENTAS_POR_VUELTA_INICIAL = 44.0f;
 const float    VOLTAJE_BUS_INICIAL = 12.0f;   // Voltaje de la fuente del L298N
 const bool     ANTIWINDUP_INICIAL  = true;    // Congela E_k cuando u se satura
-// false: u = Kp e + Ki Ts E + (Kd/Ts) Δe   (forma estándar, ver la descripción)
-// true : u = Kp e + (Ki/Ts) E + Kd Ts Δe   (forma escrita en el prompt)
-const bool     FORMA_DEL_PROMPT    = false;
 
 // Si no llega ninguna orden en este tiempo y el motor está en un modo activo,
 // el motor pasa a reposo (por si la aplicación se cierra o se desconecta).
@@ -316,7 +314,6 @@ struct Controlador {
   float cuentasPorVuelta;  // Cuentas del encoder por vuelta del eje controlado
   float voltajeBus;        // Voltaje máximo que puede aplicar el L298N
   bool  antiwindup;
-  bool  formaDelPrompt;
   // Referencia
   uint8_t tipoRef;
   float amplitud, desfase, frecuencia;   // r(t) = desfase + amplitud · forma(2π f t)
@@ -695,9 +692,9 @@ void pasoControl() {
     const float y = (ctl.modo == MODO_VELOCIDAD) ? ctl.velocidad : posicion;
     const float e = r - y;                               // e_k
     const float acumuladoNuevo = ctl.errorAcumulado + e; // E_k = E_{k-1} + e_k
-    const float gi = ctl.formaDelPrompt ? ctl.ki / ts : ctl.ki * ts;   // Factor del término integral
-    const float gd = ctl.formaDelPrompt ? ctl.kd * ts : ctl.kd / ts;   // Factor del término derivativo
-    const float pd = ctl.kp * e + gd * (e - ctl.errorAnterior);
+    // u_k = Kp·e_k + Ki·Ts·E_k + (Kd/Ts)·(e_k - e_{k-1})
+    const float gi = ctl.ki * ts;                        // Ts·E_k ≈ integral del error
+    const float pd = ctl.kp * e + (ctl.kd / ts) * (e - ctl.errorAnterior);  // (Δe/Ts) ≈ derivada
     u = pd + gi * acumuladoNuevo;
     // Anti-windup por integración condicional: si u se satura y el error lo
     // empujaría más allá del límite, E_k no cambia en este periodo.
@@ -759,7 +756,6 @@ void pasoControl() {
 //   P cuentas_vuelta v_bus     Cuentas por vuelta del eje controlado y voltaje de la fuente
 //   R tipo amplitud desfase f  Referencia: 0 constante, 1 seno, 2 cuadrada, 3 triangular
 //   A 0|1                      Anti-windup
-//   Q 0|1                      Forma del PID: 0 estándar, 1 la del prompt
 //   S n                        Telemetría cada n periodos (0 = apagada)
 //   Z                          Pone la cuenta del encoder en 0
 //   C pwm sentido freno t0 t1 t2   Configura la captura rápida (tiempos en ms)
@@ -778,7 +774,6 @@ void imprimirConfiguracion() {
   Serial.print(F(" cpr="));         Serial.print(ctl.cuentasPorVuelta, 3);
   Serial.print(F(" vbus="));        Serial.print(ctl.voltajeBus, 3);
   Serial.print(F(" aw="));          Serial.print(ctl.antiwindup ? 1 : 0);
-  Serial.print(F(" forma_prompt="));Serial.print(ctl.formaDelPrompt ? 1 : 0);
   Serial.print(F(" ref_tipo="));    Serial.print(ctl.tipoRef);
   Serial.print(F(" ref_amp="));     Serial.print(ctl.amplitud, 4);
   Serial.print(F(" ref_off="));     Serial.print(ctl.desfase, 4);
@@ -853,7 +848,6 @@ void ejecutarOrden(char *linea) {
       } else ok = false;
       break;
     case 'A': if (n >= 1) ctl.antiwindup = v[0] != 0; else ok = false; break;
-    case 'Q': if (n >= 1) { ctl.formaDelPrompt = v[0] != 0; reiniciarPID(); } else ok = false; break;
     case 'S': if (n >= 1 && v[0] >= 0 && v[0] <= 255) ctl.decimacion = (uint8_t)v[0]; else ok = false; break;
     case 'Z':
       noInterrupts(); cuentaEncoder = 0; interrupts();
@@ -927,7 +921,6 @@ void setup() {
   ctl.cuentasPorVuelta = CUENTAS_POR_VUELTA_INICIAL;
   ctl.voltajeBus = VOLTAJE_BUS_INICIAL;
   ctl.antiwindup = ANTIWINDUP_INICIAL;
-  ctl.formaDelPrompt = FORMA_DEL_PROMPT;
   ctl.tipoRef = REF_CONSTANTE;
   ctl.amplitud = 0; ctl.desfase = 0; ctl.frecuencia = 0;
   ctl.decimacion = 1;
@@ -938,7 +931,7 @@ void setup() {
   Serial.begin(BAUDIOS);
   configurarTiempoReal();
 
-  Serial.println(F("# LISTO Motor JGA25-370 con L298N. Ordenes: ? H X M K T F P R A Q S Z C E"));
+  Serial.println(F("# LISTO Motor JGA25-370 con L298N. Ordenes: ? H X M K T F P R A S Z C E"));
   imprimirConfiguracion();
   ultimaOrdenMs = millis();
 }

@@ -1,21 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Esquemático: ensayo de respuesta al escalón y a la desconexión del motor DC JGA25-370
+  Esquemático: motor DC JGA25-370 con driver L298N, sensor ACS712-5 y encoder (versión 2)
   Proyecto 3 - Métodos Numéricos 1 · UVG · 22/11/2026
   Autores: Mario Alejandro Betancourt Franco (23440) y Claude Opus 5.5 (Anthropic), asistente de IA
   Símbolos dibujados al estilo de ElCompLib para Inkscape (Filip Dominec y colaboradores, dominio público):
   trazo de 3.5 px, fuente DejaVu Sans Mono. Generado con IA: revisar antes de armar el circuito.
+  Las etiquetas de red con el mismo nombre (I_SEN, ENC_A, ENC_B) son el mismo nodo.
 -->
 <svg xmlns="http://www.w3.org/2000/svg"
      xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
      width="1280" height="960" viewBox="0 0 1280 960">
-  <title>Esquemático del ensayo del motor DC JGA25-370</title>
+  <title>Esquemático del motor DC JGA25-370 con L298N</title>
   <style>
     .w   { fill: none; stroke: #000; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
     .fino{ fill: none; stroke: #000; stroke-width: 3;   stroke-linecap: round; stroke-linejoin: round; }
     .lleno { fill: #000; stroke: #000; stroke-width: 2; stroke-linejoin: round; }
     .punto { fill: #000; }
     .caja  { fill: #fff; stroke: #000; stroke-width: 3.5; }
+    .red   { fill: #fff; stroke: #000; stroke-width: 2.5; stroke-linejoin: round; }
     .eje   { fill: none; stroke: #000; stroke-width: 2.5; stroke-dasharray: 10 7; }
     text { font-family: 'DejaVu Sans Mono', monospace; fill: #000; }
     .ref  { font-size: 20px; font-weight: bold; }
@@ -23,197 +25,189 @@
     .pin  { font-size: 16px; }
     .nc   { font-size: 16px; fill: #888; }
     .nota { font-size: 15px; }
+    .etq  { font-size: 15px; font-weight: bold; }
   </style>
 
   <rect x="0" y="0" width="1280" height="960" fill="#fff"/>
 
   <!-- ============================ U1: ARDUINO NANO ============================ -->
   <g id="U1" inkscape:label="U1 Arduino Nano">
-    <text class="ref" x="70" y="48">U1 · Arduino Nano</text>
-    <rect class="caja" x="70" y="95" width="220" height="630"/>
-    <rect class="fino" x="140" y="66" width="80" height="29"/>
-    <text class="pin" x="180" y="86" text-anchor="middle">USB</text>
-    <!-- Pines del lado digital, en el orden físico de la placa (pines 15 a 1) -->
+    <text class="ref" x="230" y="760" text-anchor="middle">U1 · Arduino Nano</text>
+    <rect class="caja" x="120" y="95" width="220" height="630"/>
+    <rect class="fino" x="190" y="66" width="80" height="29"/>
+    <text class="pin" x="230" y="86" text-anchor="middle">USB</text>
+    <!-- Lado analógico (izquierda), en el orden físico de la placa -->
+    <g id="U1_pines_analogicos">
+      <text class="nc"  x="130" y="136">D13</text>
+      <text class="nc"  x="130" y="176">3V3</text>
+      <text class="nc"  x="130" y="216">AREF</text>
+      <text class="pin" x="130" y="256">A0</text>
+      <text class="nc"  x="130" y="296">A1</text>
+      <text class="nc"  x="130" y="336">A2</text>
+      <text class="nc"  x="130" y="376">A3</text>
+      <text class="nc"  x="130" y="416">A4</text>
+      <text class="nc"  x="130" y="456">A5</text>
+      <text class="nc"  x="130" y="496">A6</text>
+      <text class="nc"  x="130" y="536">A7</text>
+      <text class="pin" x="130" y="576">5V</text>
+      <text class="nc"  x="130" y="616">RST</text>
+      <text class="pin" x="130" y="656">GND</text>
+      <text class="nc"  x="130" y="696">VIN</text>
+      <path class="w" d="M120 250H80 M120 570H80 M120 650H80"/>
+    </g>
+    <!-- Lado digital (derecha), en el orden físico de la placa -->
     <g id="U1_pines_digitales">
-      <text class="nc"  x="80" y="136">D12</text>
-      <text class="nc"  x="80" y="176">D11</text>
-      <text class="nc"  x="80" y="216">D10</text>
-      <text class="pin" x="80" y="256">D9 (PWM)</text>
-      <text class="nc"  x="80" y="296">D8</text>
-      <text class="nc"  x="80" y="336">D7</text>
-      <text class="nc"  x="80" y="376">D6</text>
-      <text class="nc"  x="80" y="416">D5</text>
-      <text class="nc"  x="80" y="456">D4</text>
-      <text class="nc"  x="80" y="496">D3</text>
-      <text class="nc"  x="80" y="536">D2</text>
-      <text class="nc"  x="80" y="576">GND</text>
-      <text class="nc"  x="80" y="616">RST</text>
-      <text class="nc"  x="80" y="656">RX0</text>
-      <text class="nc"  x="80" y="696">TX1</text>
-      <path class="w" d="M70 250H30"/>
-    </g>
-    <!-- Pines del lado analógico, en el orden físico de la placa (pines 16 a 30) -->
-    <g id="U1_pines">
-      <text class="nc"  x="280" y="136" text-anchor="end">D13 (LED)</text>
-      <text class="nc"  x="280" y="176" text-anchor="end">3V3</text>
-      <text class="nc"  x="280" y="216" text-anchor="end">AREF</text>
-      <text class="pin" x="280" y="256" text-anchor="end">A0</text>
-      <text class="pin" x="280" y="296" text-anchor="end">A1</text>
-      <text class="pin" x="280" y="336" text-anchor="end">A2</text>
-      <text class="nc"  x="280" y="376" text-anchor="end">A3</text>
-      <text class="nc"  x="280" y="416" text-anchor="end">A4</text>
-      <text class="nc"  x="280" y="456" text-anchor="end">A5</text>
-      <text class="nc"  x="280" y="496" text-anchor="end">A6</text>
-      <text class="nc"  x="280" y="536" text-anchor="end">A7</text>
-      <text class="pin" x="280" y="576" text-anchor="end">5V</text>
-      <text class="nc"  x="280" y="616" text-anchor="end">RST</text>
-      <text class="pin" x="280" y="656" text-anchor="end">GND</text>
-      <text class="nc"  x="280" y="696" text-anchor="end">VIN</text>
-      <path class="w" d="M290 250H330 M290 290H330 M290 330H330 M290 570H330 M290 650H330"/>
+      <text class="nc"  x="330" y="136" text-anchor="end">D12</text>
+      <text class="nc"  x="330" y="176" text-anchor="end">D11</text>
+      <text class="nc"  x="330" y="216" text-anchor="end">D10</text>
+      <text class="pin" x="330" y="256" text-anchor="end">D9</text>
+      <text class="pin" x="330" y="296" text-anchor="end">D8</text>
+      <text class="nc"  x="330" y="336" text-anchor="end">D7</text>
+      <text class="nc"  x="330" y="376" text-anchor="end">D6</text>
+      <text class="pin" x="330" y="416" text-anchor="end">D5</text>
+      <text class="pin" x="330" y="456" text-anchor="end">D4</text>
+      <text class="pin" x="330" y="496" text-anchor="end">D3 (PWM)</text>
+      <text class="nc"  x="330" y="536" text-anchor="end">D2</text>
+      <text class="pin" x="330" y="576" text-anchor="end">GND</text>
+      <text class="nc"  x="330" y="616" text-anchor="end">RST</text>
+      <text class="nc"  x="330" y="656" text-anchor="end">RX0</text>
+      <text class="nc"  x="330" y="696" text-anchor="end">TX1</text>
+      <path class="w" d="M340 250H380 M340 290H380 M340 570H380"/>
     </g>
   </g>
 
-  <!-- ====================== U2: SENSOR DE CORRIENTE ACS712T ===================== -->
-  <g id="U2" inkscape:label="U2 ACS712T 5A">
-    <rect class="caja" x="600" y="170" width="220" height="140"/>
-    <text class="ref" x="727" y="238" text-anchor="middle">U2 ACS712T-5A</text>
-    <text class="val" x="722" y="276" text-anchor="middle">185 mV/A</text>
-    <text class="pin" x="610" y="256">OUT</text>
-    <text class="pin" x="650" y="192" text-anchor="middle">VCC</text>
-    <text class="pin" x="650" y="302" text-anchor="middle">GND</text>
-    <text class="pin" x="812" y="216" text-anchor="end">IP+</text>
-    <text class="pin" x="812" y="286" text-anchor="end">IP−</text>
+  <!-- ===================== U3: MÓDULO L298N (CANAL B) ========================= -->
+  <g id="U3" inkscape:label="U3 modulo L298N">
+    <rect class="caja" x="520" y="380" width="240" height="260"/>
+    <text class="ref" x="640" y="520" text-anchor="middle">U3 L298N</text>
+    <text class="val" x="640" y="543" text-anchor="middle">módulo</text>
+    <text class="nota" x="640" y="566" text-anchor="middle">canal B</text>
+    <text class="pin" x="530" y="416">IN4</text>
+    <text class="pin" x="530" y="456">IN3</text>
+    <text class="pin" x="530" y="496">ENB</text>
+    <text class="pin" x="750" y="456" text-anchor="end">OUT3</text>
+    <text class="pin" x="750" y="586" text-anchor="end">OUT4</text>
+    <text class="pin" x="560" y="630" text-anchor="middle">12V</text>
+    <text class="pin" x="620" y="630" text-anchor="middle">GND</text>
+    <text class="nc"  x="700" y="630" text-anchor="middle">5V</text>
+    <text class="nota" x="640" y="372" text-anchor="middle">sin jumper en ENB</text>
+    <path class="w" d="M760 450H780 M760 580H780"/>
+    <path class="w" d="M700 640V660"/>
+    <text class="nc" x="700" y="680" text-anchor="middle">n.c.</text>
   </g>
 
-  <!-- ========================= ENC: ENCODER DEL MOTOR ========================== -->
-  <g id="ENC" inkscape:label="Encoder Hall del motor">
-    <rect class="caja" x="600" y="395" width="140" height="140"/>
-    <text class="pin" x="610" y="426">A</text>
-    <text class="pin" x="610" y="456">B</text>
-    <text class="pin" x="700" y="418" text-anchor="middle">VCC</text>
-    <text class="pin" x="670" y="528" text-anchor="middle">GND</text>
-    <text class="ref" x="670" y="484" text-anchor="middle">ENC</text>
-    <text class="pin" x="670" y="504" text-anchor="middle">Hall</text>
-    <!-- Acople mecánico con el eje del motor -->
-    <path class="eje" d="M740 450H840"/>
-    <text class="pin" x="790" y="440" text-anchor="middle">eje</text>
+  <!-- ====================== U2: SENSOR DE CORRIENTE ACS712-5 =================== -->
+  <g id="U2" inkscape:label="U2 ACS712 5A">
+    <rect class="caja" x="840" y="170" width="220" height="140"/>
+    <text class="ref" x="965" y="230" text-anchor="middle">U2 ACS712-5</text>
+    <text class="val" x="965" y="254" text-anchor="middle">185 mV/A</text>
+    <text class="pin" x="850" y="246">OUT</text>
+    <text class="pin" x="890" y="192" text-anchor="middle">VCC</text>
+    <text class="pin" x="890" y="302" text-anchor="middle">GND</text>
+    <text class="pin" x="980" y="302" text-anchor="middle">IP+</text>
+    <text class="pin" x="1030" y="302" text-anchor="middle">IP−</text>
   </g>
 
   <!-- ============================ M1: MOTOR DC ================================= -->
   <g id="M1" inkscape:label="M1 motor JGA25-370">
-    <path class="w" d="M880 380V398 M880 502V520"/>
-    <rect class="caja" x="870" y="398" width="20" height="12"/>
-    <rect class="caja" x="870" y="490" width="20" height="12"/>
-    <circle class="w" cx="880" cy="450" r="40"/>
-    <path class="w" d="M862 470V430L880 452L898 430V470"/>
-    <text class="val" x="896" y="392">+</text>
-    <text class="ref" x="935" y="445">M1</text>
-    <text class="val" x="935" y="468">JGA25-370</text>
+    <path class="w" d="M1180 400V418 M1180 522V540"/>
+    <rect class="caja" x="1170" y="418" width="20" height="12"/>
+    <rect class="caja" x="1170" y="510" width="20" height="12"/>
+    <circle class="w" cx="1180" cy="470" r="40"/>
+    <path class="w" d="M1162 490V450L1180 472L1198 450V490"/>
+    <text class="val" x="1196" y="412">+</text>
+    <text class="ref" x="1112" y="465" text-anchor="end">M1</text>
+    <text class="val" x="1112" y="488" text-anchor="end">JGA25-370</text>
   </g>
 
-  <!-- ============================ Q1: IRFZ44N ================================== -->
-  <g id="Q1" inkscape:label="Q1 IRFZ44N">
-    <circle class="w" cx="866" cy="660" r="38"/>
-    <path class="fino" d="M828 660H848 M848 640V680"/>
-    <path class="fino" d="M858 636V648 M858 654V666 M858 672V684"/>
-    <path class="fino" d="M858 642H880V622 M858 678H880V698 M872 660H880V678"/>
-    <path class="lleno" d="M859 660L872 653V667Z"/>
-    <text class="pin" x="890" y="640">D</text>
-    <text class="pin" x="890" y="692">S</text>
-    <text class="pin" x="832" y="650">G</text>
-    <text class="ref" x="915" y="660">Q1</text>
-    <text class="val" x="915" y="683">IRFZ44N</text>
-  </g>
-
-  <!-- ============================ R1: 180 Ω (compuerta) ======================== -->
-  <g id="R1" inkscape:label="R1 180 ohm">
-    <path class="w" d="M600 660H615L620 650L630 670L640 650L650 670L660 650L670 670L680 650L685 660H700"/>
-    <text class="ref" x="650" y="632" text-anchor="middle">R1</text>
-    <text class="val" x="650" y="700" text-anchor="middle">180 Ω</text>
-  </g>
-
-  <!-- ============================ R2: 10 kΩ (pull-down) ======================== -->
-  <g id="R2" inkscape:label="R2 10k pull-down">
-    <path class="w" d="M760 660V695L750 700L770 710L750 720L770 730L750 740L770 750L760 755V770"/>
-    <text class="ref" x="742" y="722" text-anchor="end">R2</text>
-    <text class="val" x="742" y="745" text-anchor="end">10 kΩ</text>
-  </g>
-
-  <!-- ============================ D1: 1N540X (rueda libre) ===================== -->
-  <g id="D1" inkscape:label="D1 1N540X">
-    <path class="w" d="M1040 80V312 M1040 348V580"/>
-    <path class="lleno" d="M1022 348H1058L1040 314Z"/>
-    <path class="w" d="M1020 312H1060"/>
-    <text class="ref" x="1066" y="325">D1</text>
-    <text class="val" x="1066" y="348">1N540X</text>
-    <text class="pin" x="1066" y="368">rueda libre</text>
+  <!-- ========================= ENC: ENCODER DEL MOTOR ========================== -->
+  <g id="ENC" inkscape:label="Encoder Hall del motor">
+    <rect class="caja" x="1040" y="620" width="140" height="125"/>
+    <text class="pin" x="1050" y="666">A</text>
+    <text class="pin" x="1050" y="706">B</text>
+    <text class="pin" x="1110" y="642" text-anchor="middle">VCC</text>
+    <text class="pin" x="1110" y="738" text-anchor="middle">GND</text>
+    <text class="ref" x="1135" y="682" text-anchor="middle">ENC</text>
+    <text class="pin" x="1135" y="702" text-anchor="middle">Hall</text>
+    <path class="w" d="M1040 660H1000 M1040 700H1000"/>
+    <!-- Acople mecánico con el eje del motor -->
+    <path class="eje" d="M1220 470H1245V690H1180"/>
+    <text class="pin" x="1252" y="585">eje</text>
   </g>
 
   <!-- ============================ V1: FUENTE DE 12 V =========================== -->
-  <g id="V1" inkscape:label="V1 bus 12 V">
-    <path class="w" d="M1180 80V400 M1180 446V760"/>
-    <path class="w" d="M1150 400H1210 M1166 414H1194 M1150 432H1210 M1166 446H1194"/>
-    <text class="val" x="1214" y="396">+</text>
-    <text class="ref" x="1214" y="428">V1</text>
-    <text class="val" x="1214" y="450">12 V</text>
-    <text class="val" x="1100" y="70" text-anchor="middle">Bus de 12 V</text>
+  <g id="V1" inkscape:label="V1 fuente 12 V">
+    <path class="w" d="M530 690H590 M546 704H574 M530 722H590 M546 736H574"/>
+    <text class="val" x="512" y="694" text-anchor="end">+</text>
+    <text class="ref" x="512" y="720" text-anchor="end">V1</text>
+    <text class="val" x="512" y="742" text-anchor="end">12 V</text>
   </g>
 
   <!-- ================================= CONEXIONES ============================== -->
   <g id="conexiones" inkscape:label="Conexiones">
-    <!-- A0 → salida del sensor de corriente -->
-    <path class="w" d="M330 250H600"/>
-    <!-- A1 → canal A del encoder -->
-    <path class="w" d="M330 290H560V420H600"/>
-    <!-- A2 → canal B del encoder -->
-    <path class="w" d="M330 330H540V450H600"/>
-    <!-- D9 (PWM) → R1 → compuerta de Q1 (rodea la placa por abajo) -->
-    <path class="w" d="M30 250V750H500V660H600 M700 660H828"/>
-    <text class="pin" x="40" y="742">D9: señal del driver (PWM)</text>
-    <!-- Bus de 12 V: V1(+) → cátodo de D1 → IP+ del sensor -->
-    <path class="w" d="M820 210H960V80H1180"/>
+    <!-- D5 → IN4, D4 → IN3, D3 (PWM) → ENB -->
+    <path class="w" d="M340 410H520 M340 450H520 M340 490H520"/>
+    <!-- OUT3 → IP+ del sensor (el sensor queda en serie con el motor) -->
+    <path class="w" d="M780 450H980V310"/>
     <!-- IP− → terminal + del motor -->
-    <path class="w" d="M820 280H880V380"/>
-    <!-- Terminal − del motor → drenador de Q1 y ánodo de D1 -->
-    <path class="w" d="M880 520V622 M880 580H1040"/>
-    <!-- Compuerta → R2 (pull-down) -->
-    <path class="w" d="M760 660V660"/>
+    <path class="w" d="M1030 310V350H1180V400"/>
+    <!-- OUT4 → terminal − del motor -->
+    <path class="w" d="M780 580H1180V540"/>
+    <!-- Fuente: 12V del módulo → + de V1; GND del módulo y − de V1 a tierra -->
+    <path class="w" d="M560 640V690 M560 736V760 M620 640V700"/>
+    <!-- Salida del sensor -->
+    <path class="w" d="M840 240H800"/>
     <!-- Alimentación de 5 V -->
-    <path class="w" d="M330 570H380 M650 170V135 M700 395V372"/>
+    <path class="w" d="M890 170V146 M1110 620V600"/>
     <!-- Tierras -->
-    <path class="w" d="M330 650H380V670 M650 310V335 M670 535V555 M880 698V730"/>
-    <!-- Uniones -->
-    <circle class="punto" cx="760" cy="660" r="6"/>
-    <circle class="punto" cx="880" cy="580" r="6"/>
-    <circle class="punto" cx="1040" cy="80" r="6"/>
+    <path class="w" d="M80 650V670 M380 570V590 M890 310V330 M1110 745V760"/>
+  </g>
+
+  <!-- ===================== ETIQUETAS DE RED (mismo nombre = mismo nodo) ========= -->
+  <g id="etiquetas" inkscape:label="Etiquetas de red">
+    <!-- I_SEN: A0 ↔ OUT del ACS712 -->
+    <path class="red" d="M80 250L68 238H8V262H68Z"/>
+    <text class="etq" x="38" y="255" text-anchor="middle">I_SEN</text>
+    <path class="red" d="M800 240L788 228H728V252H788Z"/>
+    <text class="etq" x="758" y="245" text-anchor="middle">I_SEN</text>
+    <!-- ENC_B: D9 ↔ B del encoder -->
+    <path class="red" d="M380 250L392 238H462V262H392Z"/>
+    <text class="etq" x="427" y="255" text-anchor="middle">ENC_B</text>
+    <path class="red" d="M1000 700L988 688H918V712H988Z"/>
+    <text class="etq" x="953" y="705" text-anchor="middle">ENC_B</text>
+    <!-- ENC_A: D8 ↔ A del encoder -->
+    <path class="red" d="M380 290L392 278H462V302H392Z"/>
+    <text class="etq" x="427" y="295" text-anchor="middle">ENC_A</text>
+    <path class="red" d="M1000 660L988 648H918V672H988Z"/>
+    <text class="etq" x="953" y="665" text-anchor="middle">ENC_A</text>
   </g>
 
   <!-- ================== SÍMBOLOS DE +5 V (todos son el mismo nodo) ============= -->
   <g id="vcc" inkscape:label="+5V">
-    <circle class="w" cx="386" cy="570" r="6"/><text class="val" x="398" y="576">+5V</text>
-    <circle class="w" cx="650" cy="129" r="6"/><text class="val" x="662" y="134">+5V</text>
-    <circle class="w" cx="700" cy="366" r="6"/><text class="val" x="712" y="371">+5V</text>
+    <circle class="w" cx="74" cy="570" r="6"/><text class="val" x="62" y="576" text-anchor="end">+5V</text>
+    <circle class="w" cx="890" cy="140" r="6"/><text class="val" x="902" y="145">+5V</text>
+    <circle class="w" cx="1110" cy="594" r="6"/><text class="val" x="1122" y="599">+5V</text>
   </g>
 
   <!-- ================= SÍMBOLOS DE TIERRA (todos son el mismo nodo) ============ -->
   <g id="tierras" inkscape:label="GND">
-    <path class="w" d="M360 670H400 M367 677H393 M374 684H386"/>
-    <path class="w" d="M630 335H670 M637 342H663 M644 349H656"/>
-    <path class="w" d="M650 555H690 M657 562H683 M664 569H676"/>
-    <path class="w" d="M740 770H780 M747 777H773 M754 784H766"/>
-    <path class="w" d="M860 730H900 M867 737H893 M874 744H886"/>
-    <path class="w" d="M1160 760H1200 M1167 767H1193 M1174 774H1186"/>
+    <path class="w" d="M60 670H100 M67 677H93 M74 684H86"/>
+    <path class="w" d="M360 590H400 M367 597H393 M374 604H386"/>
+    <path class="w" d="M870 330H910 M877 337H903 M884 344H896"/>
+    <path class="w" d="M540 760H580 M547 767H573 M554 774H566"/>
+    <path class="w" d="M600 700H640 M607 707H633 M614 714H626"/>
+    <path class="w" d="M1090 760H1130 M1097 767H1123 M1104 774H1116"/>
   </g>
 
   <!-- ================================ CUADRO DE TÍTULO ========================= -->
   <g id="titulo" inkscape:label="Cuadro de título">
     <rect class="caja" x="40" y="805" width="1200" height="147"/>
     <path class="fino" d="M40 842H1240"/>
-    <text class="ref" x="56" y="830">Ensayo de respuesta al escalón y a la desconexión · Motor DC JGA25-370</text>
-    <text class="nota" x="56" y="864">Proyecto 3 · Métodos Numéricos 1 · UVG · 22/11/2026 · Programa: RespuestaEscalonMotorDC.ino</text>
-    <text class="nota" x="56" y="884">Autores: Mario Alejandro Betancourt Franco (23440) y Claude Opus 5.5 (Anthropic, IA)</text>
-    <text class="nota" x="56" y="904">Todas las tierras son un solo nodo: el (−) de la fuente de 12 V va al GND del Nano.</text>
-    <text class="nota" x="56" y="924">Los +5V salen del pin 5V del Nano (alimentado por USB). Generado con IA: revisar antes de armar.</text>
-    <text class="nota" x="56" y="944">Símbolos dibujados por la IA al estilo de ElCompLib (F. Dominec y colaboradores, dominio público).</text>
+    <text class="ref" x="56" y="830">Motor DC JGA25-370 con driver L298N, sensor ACS712-5 y encoder (versión 2)</text>
+    <text class="nota" x="56" y="864">Proyecto 3 · Métodos Numéricos 1 · UVG · 22/11/2026 · Programa: MotorDC_L298N.ino</text>
+    <text class="nota" x="56" y="884">Autores: M. A. Betancourt Franco (23440) y Claude Opus 5.5 (IA). Quitar el jumper de ENB: ENB va a D3.</text>
+    <text class="nota" x="56" y="904">Tierra común (Nano, L298N, fuente, ACS712, encoder). +5V = pin 5V del Nano; el 5 V del módulo no se usa.</text>
+    <text class="nota" x="56" y="924">Etiquetas iguales = mismo nodo. ACS712 en serie: OUT3 → IP+ → IP− → M1+ (signo al revés: invertir IP+/IP−).</text>
+    <text class="nota" x="56" y="944">Generado con IA, al estilo de ElCompLib (F. Dominec y col., dominio público): revisar antes de armar.</text>
   </g>
 </svg>

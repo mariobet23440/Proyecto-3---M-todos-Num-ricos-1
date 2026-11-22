@@ -1,5 +1,11 @@
 # Driver del motor: análisis y simulaciones LTspice
 
+> [!NOTE]
+> **Simulaciones retiradas el 22/11/2026.** El autor cambió el driver MOSFET por un L298N y pidió
+> quitar las simulaciones (Entrada 13 de la bitácora). La carpeta `ParteExperimental/Simulaciones/`
+> se borró del repositorio; sigue en el historial de git (commit `7ed3b88` y anteriores). Este documento
+> se conserva como registro del uso de IA; sus enlaces a esa carpeta ya no funcionan.
+
 | Campo | Detalle |
 |-------|---------|
 | **Fecha** | 22/11/2026 |

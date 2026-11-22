@@ -331,16 +331,13 @@ El `.json` guarda toda la configuración de la aplicación y del Arduino en ese 
 2. **GANANCIAS**: KP, KI, KD, **TS** (periodo de muestreo, ms) y **FILTRO** (constante de tiempo
    del filtro de la velocidad, ms). Arriba se ve la fórmula que se usa:
    `u = Kp e + Ki Ts E + (Kd/Ts)(e - e_ant)`, con `E = E_ant + e` y u en voltios.
-   - **FORMA DEL PROMPT**: cambia a `u = Kp e + (Ki/Ts) E + Kd Ts (e - e_ant)`, la fórmula
-     escrita en el prompt. Ver [`Controlador_PID.md`](../../UsoIA/ParteExperimental/Controlador_PID.md):
-     el equipo debe decidir cuál usar.
    - **ANTI-WINDUP**: si el voltaje se satura, deja de acumular el error.
 3. **REFERENCIA r(t)**: CONSTANTE, SENO, CUADRADA o TRIANGULAR, con AMPLITUD, DESFASE y
    FRECUENCIA. En CONSTANTE, la referencia es el **DESFASE**.
 4. **ARRANCAR** manda todo y arranca. **DETENER** (o STOP) pone el motor en reposo y borra la
    memoria del PID.
 
-Cambiar de modo, de TS o de forma pone en cero la memoria del PID (E y e_ant).
+Cambiar de modo o de TS pone en cero la memoria del PID (E y e_ant).
 
 **Sugerencia para empezar:** en VELOCIDAD, con KI y KD en 0, suba KP poco a poco hasta que
 responda rápido sin oscilar. Luego agregue KI para quitar el error permanente. Pruébelo
