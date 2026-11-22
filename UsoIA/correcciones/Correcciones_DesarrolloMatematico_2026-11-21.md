@@ -117,8 +117,12 @@ $$
 - El vector $(f_1,\dots,f_N)$ es el campo vectorial $\mathbf f$, no un Jacobiano. Un Jacobiano contiene **derivadas parciales**.
 - El Jacobiano que de verdad importa es $\partial\mathbf f/\partial\mathbf y$ (matriz $N\times N$). Es el que se usa, correctamente, en la sección 1.4 (ver C-05).
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Es correcto. Yo confundí el campo vectorial por el Jacobiano. Esto podría deberse a que consulté a la IA de Google sobre la resolución de sistemas de ecuaciones diferenciales y el criterio de estabilidad numérica del método de Euler, y la IA presentó únicamente resultados para sistemas lineales y autónomos (no como el sistema del motor). En ese caso, la igualdad se cumple. Este caso es común en la presentación de la estabilidad numérica del método de Euler. Sin embargo, después de intentar sacar el Jacobiano para el sistema del motor, se encontró que era imposible meter los términos constantes dentro de la matriz jacobiana. Por lo tanto, este contraejemplo justifica la decisión de aplicar la corrección. 
+
+En pocas palabras. Si intentamos sacar el jacobiano del sistema, donde aparecen términos constantes que se suman y restan, ¿dónde caben en el jacobiano? ¡En ninguna parte! y por lo tanto, mi intuición inicial estaba equivocada y no tenía pies ni cabeza. 
+
+PROMPT UTILIZADO PARA ARREGLAR: Por favor reemplazar todas las apariciones del Jacobiano en las deducciones del método por el campo vectorial f, excepto en la sección de análisis de estabilidad.
 
 &nbsp;
 
@@ -147,8 +151,9 @@ Factorizar $\mathbf y_k$ requiere que $\mathbf f$ sea lineal en $\mathbf y$. El 
 
 La forma $(I+hA)\mathbf y_k$ sí es importante, pero para el **error**, no para la solución.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Claude tenía razón: yo cometí un error al investigar al utilizar la IA de Google como referencia. Es posible que haya considerado únicamente ejemplos de sistemas de EDOs lineales. El sistema de ecuaciones diferenciales del motor es no lineal por los términos constantes que se agregan. Se tomó la decisión de no presentar el caso particular: no aporta nada al estudio al que está orientado este proyecto. Junto con la corrección C-01 podemos proceder. (Revisor: Mario Betancourt).
+
 
 &nbsp;
 
@@ -173,8 +178,8 @@ Al calcular el Jacobiano del motor aparece la inercia dentro de él. La segunda 
 
 **Respaldo bibliográfico:** Nise también llama $J_m$ a la inercia equivalente en la armadura [Nise 2015, §2.8, p. 79, Fig. 2.36]. Ver [`Referencias.md`](Referencias.md).
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Decisión que a mi parecer es puramente estética. Apruebo sin pensármela mucho. Arreglar con IA.
 
 &nbsp;
 
@@ -198,8 +203,8 @@ Al restar la fórmula de Euler $\mathbf{y}_{k+1} = \mathbf{y}_k + h\mathbf{f}(t_
 $\mathbf{Y}(t_{k+1}) = \mathbf{Y}(t_k) + h\mathbf{f}(t_k,\mathbf{Y}(t_k)) + \mathbf T_k$,
 término a término queda $\mathbf{Y}(t_k) - \mathbf{y}_k = \mathbf e_k$. La línea siguiente del cuaderno ya usa $\mathbf e_k$, así que el resultado final no cambia; solo hay que corregir la línea intermedia.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Pequeño typo que cometí. Arreglar con IA.
 
 &nbsp;
 
@@ -228,8 +233,8 @@ término a término queda $\mathbf{Y}(t_k) - \mathbf{y}_k = \mathbf e_k$. La lí
 - Hay que decir **qué** Jacobiano es ($\partial\mathbf f/\partial\mathbf y$, no el "Jacobiano de $\mathbf y$" de la sección 1.2) y **dónde** se evalúa.
 - En un sistema no lineal, $J$ cambia en cada paso. Por eso el error acumulado es un producto de matrices distintas, no una potencia $(I+hJ)^n$.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Es correcto. Respaldada por la corrección C-01 (Mario Betancourt)
 
 &nbsp;
 
@@ -257,8 +262,8 @@ término a término queda $\mathbf{Y}(t_k) - \mathbf{y}_k = \mathbf e_k$. La lí
 - La justificación correcta es conceptual: estabilidad (no amplificar errores) más consistencia ($\mathbf T_k/h \to 0$) implican convergencia (teorema de equivalencia de Lax / Dahlquist).
 - Con el criterio $|1+h\lambda_i|\le 1$ la sección termina en un resultado utilizable. Ahora termina diciendo que el factor "es en realidad un operador", sin conclusión.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Todavía no hacer la diagonalización del Jacobiano. Eso se revisará por mi persona. Claude tiene un punto. No es necesario justificar la decisión de desaparecer el término proporcional al cuadrado de h, dado que el análisis de estabilidad se concentra únicamente en la amplificación del error ya existente, el cual produce la divergencia a gran escala. Entendí que T_k es ese erorr en cuestión.
 
 &nbsp;
 
@@ -283,8 +288,8 @@ $$\|\mathbf T_k\| \le \frac{h^2}{2}\max_{t\in[t_k,t_{k+1}]}\|\mathbf Y''(t)\|.$$
 **Justificación:**
 El teorema de Taylor con resto de Lagrange vale para funciones escalares. En una función vectorial, cada componente tiene su propio punto intermedio $\epsilon_i$; en general no existe un único $\epsilon$ que sirva para todas a la vez. Además, el cuaderno no dice en qué intervalo está $\epsilon$, y hay que agregarlo.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Interesante observación. No lo había considerado. Aporta mucho a la consistencia del desarrollo matemático.
 
 &nbsp;
 
@@ -311,8 +316,8 @@ El teorema de Taylor con resto de Lagrange vale para funciones escalares. En una
 **Justificación:**
 El análisis de la 1.4 supone que $\mathbf f$ es diferenciable, y eso no se cumple en $\omega=0$. La observación delimita cuándo vale el análisis, deja listo el Jacobiano del motor para la parte numérica y anticipa un comportamiento que va a aparecer en las simulaciones.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Mmmmm alrededor de un punto de operación, sí se puede. Sin embargo, tiene un punto. Esto anticipa un comportamiento y no considera el más general de los casos, que es el focus de este proyecto.
 
 &nbsp;
 
@@ -333,8 +338,8 @@ El análisis de la 1.4 supone que $\mathbf f$ es diferenciable, y eso no se cump
 
 **Justificación:** $J$ es una matriz $N\times N$, así que no se le puede sumar el escalar $1$. Lo correcto es la identidad $I_N$.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Decisión puramente estética. Aprobada.
 
 &nbsp;
 
@@ -355,8 +360,8 @@ El análisis de la 1.4 supone que $\mathbf f$ es diferenciable, y eso no se cump
 
 **Justificación:** $y$ (o $y_i$) es la variable **dependiente**, la incógnita que depende de $t$; $t$ (o $x$) es la independiente. La frase de la 1.2 "dependientes de la misma variable independiente $t$" está bien y no se cambia.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Decisión puramente estética, aprobada sin más comentarios.
 
 &nbsp;
 
@@ -377,8 +382,8 @@ El análisis de la 1.4 supone que $\mathbf f$ es diferenciable, y eso no se cump
 - Evaluar $f$ en el extremo **izquierdo** $(t_k, y_k)$ es lo que hace que el método sea **explícito**. Evaluarla en $(t_{k+1},y_{k+1})$ da Euler implícito. Hay que dejarlo escrito.
 - Si $y_k$ se define como el valor exacto $y(t_k)$, la fórmula de Euler parece exacta. La sección 1.4 sí distingue $\mathbf Y$ (exacta) de $\mathbf y$ (aproximada); conviene adoptar esa convención desde la 1.1.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Corrección sobre terminología del método de Euler. Decisiones de redacción que hacen más claro entender cuál es la solución exacta y cuál es la solución numérica.
 
 &nbsp;
 
@@ -393,8 +398,8 @@ El análisis de la 1.4 supone que $\mathbf f$ es diferenciable, y eso no se cump
 
 **Justificación:** Consistencia con el modelo físico, donde la variable independiente es el tiempo, y menos confusión al leer.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [X] Rechazada
+**Comentario del revisor:** Pendiente de revisión. El uso de variables x e y es únicamente para fines demostrativos. Es lo común en la literatura del tema y por lo tanto, cambiar todas las demostraciones generales a una variable t puede resultar incómodo para ciertos lectores. Rechazada.
 
 &nbsp;
 
@@ -417,8 +422,8 @@ El análisis de la 1.4 supone que $\mathbf f$ es diferenciable, y eso no se cump
 
 **Justificación:** La barra $\mid$ solo tiene sentido dentro de llaves, como en $\{i\in\mathbb N \mid 1\le i\le N\}$. Y la reducción de orden da un número **exacto** de ecuaciones, no una cota inferior.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Hasta yo mismo tenía dudas al respecto y puse el prompt escondido para que Claude lo corrija. Totalmente aprobado
 
 &nbsp;
 
@@ -435,8 +440,8 @@ El análisis de la 1.4 supone que $\mathbf f$ es diferenciable, y eso no se cump
 | 11 | `\begin{align}` dentro de `$$…$$` da error en algunos renderizadores; además faltan los `&` | `$$\begin{aligned} (y_1)_{k+1} &= \dots \\ \end{aligned}$$` |
 | 6, 11 | `\textbf{y}` para vectores | Opcional: `\mathbf{y}`, que es la forma estándar en modo matemático |
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Arreglen esa cosa, corrección estética.
 
 &nbsp;
 
@@ -470,8 +475,8 @@ Además, agregar al cuaderno una sección **Referencias** con la entrada complet
 
 El detalle completo, con ISBN, formatos IEEE y APA y la tabla de equivalencias de notación, está en [`Referencias.md`](Referencias.md).
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [X] Rechazada
+**Comentario del revisor:** Ya corregida con nuevo commit. Yo puse el capítulo 4 porque fue como recorde donde vi el análisis de sistemas electromecánicos. Cabe aclarar que este análisis asume que el sistema es puramente lineal, cosa que no es cierta en este sistema. La referencia de Nise se utiliza únicamente para comparar el modelo con un modelo lineal ya estudiado con anterioridad, pero no puede ser utilizado como base para el proyecto. En caso contrario, se asume que el sistema es lineal cuando no lo es necesariamente.
 
 &nbsp;
 
@@ -492,8 +497,8 @@ El detalle completo, con ISBN, formatos IEEE y APA y la tabla de equivalencias d
 
 **Observación física opcional:** en unidades SI, $K_e$ (V·s/rad) y $K_t$ (N·m/A) son numéricamente iguales para un motor ideal. Sirve para verificar los parámetros del JGA25-370. Nise afirma lo mismo para $K_t$ y $K_b$ en un sistema de unidades consistente [Nise 2015, §2.8, p. 79]; él llama $K_b$ a lo que el cuaderno llama $K_e$.
 
-**Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
-**Comentario del revisor:**
+**Decisión:** [X] Aprobada [ ] Aprobada con cambios [ ] Rechazada
+**Comentario del revisor:** Arreglar.
 
 &nbsp;
 
@@ -532,15 +537,17 @@ Para llenar al terminar la revisión.
 | C-15 | | | | |
 | C-16 | | | | |
 
+Le voy a pedir a Claude que la llene por mí con las observaciones que puse antes.
+
 ---
 
 ## Observaciones del revisor
 
 Espacio para que cada revisor anote observaciones generales, desacuerdos con la propuesta, errores que la IA no detectó o cambios adicionales.
 
-**Revisor:** ______________________________ **Fecha:** ______________
+**Revisor:** Mario Alejandro Betancourt Franco **Fecha:** 22/11/2026
 
-**Observaciones:**
+**Observaciones:** Correcciones importantes sobre el uso de Jacobianos en el análisis del método de Euler para sistemas de ecuaciones diferenciales ordinarias. Correcciones sobre typos pequeños, redacción, entre otras cosas. Los cambios sobre el desarrollo matemático fueron revisados y autorizados por mi persona. Yo traté de dar mi interpretación sobre las propuestas antes de ejecutarlas. Le pediré a Claude que haga los cambios. Entendí que cambiará el Jacobiano de la sección 1.2 por el campo vectorial, y dejará el jacobiano donde estaba en el análisis de estabilidad, corrigiendo también ahi una igualdad por una aproximacióm. 
 
 &nbsp;
 
@@ -576,9 +583,4 @@ Espacio para que cada revisor anote observaciones generales, desacuerdos con la 
 
 **Aprobación final del equipo** (cuando todas las correcciones tengan una decisión):
 
-| Integrante | Aprueba | Fecha |
-|------------|:-------:|-------|
-| | [ ] | |
-| | [ ] | |
-| | [ ] | |
-| | [ ] | |
+Quiero quitar esta parte, no necesito la aprobación de otros para hacer estos cambios. Estos quedan documentados y hay flexibilidad para que ellos revisen y hagan más cambios.
