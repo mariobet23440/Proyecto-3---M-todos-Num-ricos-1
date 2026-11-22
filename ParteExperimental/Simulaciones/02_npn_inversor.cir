@@ -1,0 +1,19 @@
+* 02 - Un solo NPN 2N3904 como inversor, con pull-up de 1k a 12 V (INVIERTE la senal)
+Vpin src 0 PULSE(0 5 100u 20n 20n 1m 10m)
+* Salida del Arduino: ~25 ohm de resistencia de salida (valor aproximado)
+Rout src d9 25
+R3 d9 b2 4.7k
+R6 b2 0 10k
+Q2 c2 b2 0 2N3904
+Rc c2 vbus 1k
+R1 c2 g 180
+R2 g 0 10k
+M1 dr g 0 IRFZ44N
+.save V(d9) V(g) V(dr) I(Lm) I(D1) I(Rout) V(vbus) Id(M1)
+* Aqui el pin en ALTO APAGA el motor y el pin en BAJO lo ENCIENDE
+.meas tran t_off TRIG V(d9) VAL=2.5 RISE=1 TARG V(dr) VAL=6 RISE=1
+.meas tran t_on TRIG V(d9) VAL=2.5 FALL=1 TARG V(dr) VAL=6 FALL=1
+.meas tran Ipin_pico MAX I(Rout)
+.include comun_motor.inc
+.include mediciones_escalon.inc
+.end

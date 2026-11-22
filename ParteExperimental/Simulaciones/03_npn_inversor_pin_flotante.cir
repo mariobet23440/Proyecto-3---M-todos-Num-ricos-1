@@ -1,0 +1,14 @@
+* 03 - Igual que 02, pero con el pin del Arduino en alta impedancia
+* Pin del Arduino en alta impedancia (reset, bootloader o USB desconectado)
+Rflot d9 0 1G
+R3 d9 b2 4.7k
+R6 b2 0 10k
+Q2 c2 b2 0 2N3904
+Rc c2 vbus 1k
+R1 c2 g 180
+R2 g 0 10k
+M1 dr g 0 IRFZ44N
+.save V(d9) V(g) V(dr) I(Lm) I(D1) V(vbus) Id(M1)
+.include comun_motor.inc
+.include mediciones_escalon.inc
+.end

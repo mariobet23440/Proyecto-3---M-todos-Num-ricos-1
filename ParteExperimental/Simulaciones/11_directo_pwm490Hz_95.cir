@@ -1,0 +1,17 @@
+* 11 - Como 09 (95 %), pero con PWM de 490 Hz (frecuencia por defecto de analogWrite en D9)
+Vpin src 0 PULSE(0 5 0 20n 20n 0.00193878 0.00204082)
+* Salida del Arduino: ~25 ohm de resistencia de salida (valor aproximado)
+Rout src d9 25
+R1 d9 g 180
+R2 g 0 10k
+M1 dr g 0 IRFZ44N
+.save V(d9) V(g) V(dr) I(Lm) I(D1) I(Rout) V(vbus) Id(M1)
+.include comun_motor.inc
+.tran 0 30m 0 0.5u
+* Regimen permanente: ultimos 10 ms (unos 5 periodos)
+.meas tran Id_prom AVG I(Lm) FROM=20m TO=30m
+.meas tran Id_pp PP I(Lm) FROM=20m TO=30m
+.meas tran P_Q1_prom AVG V(dr)*Id(M1) FROM=20m TO=30m
+.meas tran P_D1_prom AVG (V(dr)-V(vbus))*I(D1) FROM=20m TO=30m
+.meas tran Vmotor_prom AVG V(vbus)-V(dr) FROM=20m TO=30m
+.end

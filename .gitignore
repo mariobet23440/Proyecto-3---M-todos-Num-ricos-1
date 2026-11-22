@@ -1,0 +1,23 @@
+# Jupyter / Colab
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editores
+.vscode/
+.idea/
+
+# Salidas de LTspice (se regeneran con correr_simulaciones.py)
+*.raw
+*.log
+*.op.raw
+*.net

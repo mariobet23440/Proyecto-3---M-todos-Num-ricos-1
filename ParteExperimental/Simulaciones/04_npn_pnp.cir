@@ -1,0 +1,23 @@
+* 04 - Etapa propuesta: NPN 2N3904 + PNP 2N3906, NO inversora, compuerta a 12 V
+Vpin src 0 PULSE(0 5 100u 20n 20n 1m 10m)
+* Salida del Arduino: ~25 ohm de resistencia de salida (valor aproximado)
+Rout src d9 25
+R3 d9 b2 4.7k
+R6 b2 0 10k
+Q2 c2 b2 0 2N3904
+R4 c2 b3 1.5k
+R5 b3 vbus 10k
+Q3 c3 b3 vbus 2N3906
+R7 c3 0 2.2k
+R1 c3 g 180
+R2 g 0 10k
+M1 dr g 0 IRFZ44N
+.save V(d9) V(g) V(dr) I(Lm) I(D1) I(Rout) I(R1) I(R4) V(vbus) Id(M1)
+.meas tran t_on TRIG V(d9) VAL=2.5 RISE=1 TARG V(dr) VAL=6 FALL=1
+.meas tran t_off TRIG V(d9) VAL=2.5 FALL=1 TARG V(dr) VAL=6 RISE=1
+.meas tran Ipin_pico MAX I(Rout)
+.meas tran Ig_pico MAX I(R1) FROM=100u TO=110u
+.meas tran IR4_pulso FIND -I(R4) AT=1m
+.include comun_motor.inc
+.include mediciones_escalon.inc
+.end

@@ -1,0 +1,10 @@
+* 06 - Verificacion del modelo 1N540X: caida en directa a varias corrientes
+I1 0 a 1
+D1 a 0 1N540X
+.include modelos/1N540X.lib
+.dc I1 list 0.01 0.1 1 3 10
+.meas DC VF_0p1A FIND V(a) AT=0.1
+.meas DC VF_1A FIND V(a) AT=1
+.meas DC VF_3A FIND V(a) AT=3
+.meas DC VF_10A FIND V(a) AT=10
+.end

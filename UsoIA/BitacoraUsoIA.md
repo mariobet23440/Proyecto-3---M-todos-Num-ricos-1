@@ -213,6 +213,110 @@ El revisor aprobó C-01 con ese mismo argumento.
 
 ---
 
+## Entrada 6 — 22/11/2026 · Parte experimental: programa y esquemático
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`ParteExperimental/Programa_RespuestaEscalon.md`](ParteExperimental/Programa_RespuestaEscalon.md) · [`ParteExperimental/Esquematico_Circuito.md`](ParteExperimental/Esquematico_Circuito.md) (ambos tienen los prompts textuales) |
+
+### Solicitud
+1. **Programa para el Arduino Nano** que accione un driver MOSFET y capture la respuesta al escalón y a la desconexión del motor JGA25-370:
+   - corriente medida con un ACS712T de 5 A, con el ADC a la frecuencia de muestreo más alta posible;
+   - posición medida con el encoder;
+   - datos enviados por UART;
+   - código documentado, con constantes de pines y encabezado con resumen del prompt y aviso de IA.
+2. **Esquemático del circuito** con el driver IRFZ44N (180 Ω de compuerta, 10 kΩ de pull-down, diodo 1N540X, motor entre el bus de 12 V y tierra), dibujado con la librería ElCompLib para Inkscape (se adjuntó como imagen). De ser posible, todos los pines en un mismo lado del Nano.
+3. **Documentación** en la carpeta de uso de IA.
+
+### Lo que hizo la IA
+- **Programa** [`ParteExperimental/RespuestaEscalonMotorDC/RespuestaEscalonMotorDC.ino`](../ParteExperimental/RespuestaEscalonMotorDC/RespuestaEscalonMotorDC.ino):
+  - **Muestreo:** el ADC trabaja en modo continuo por interrupción a ≈ 38 462 muestras/s.
+  - **Transmisión:** el UART va a 2 Mbaud, el máximo exacto a 16 MHz, con tramas binarias de 4 bytes en tiempo real. El límite de la frecuencia de muestreo lo pone el UART, no el ADC.
+  - **Encoder:** cuenta en cuadratura ×4.
+  - **Pines:** todos en el lado analógico del Nano (A0 sensor, A1/A2 encoder, A3 driver), como pidió el autor.
+- **Receptor** [`ParteExperimental/captura_respuesta.py`](../ParteExperimental/captura_respuesta.py): recibe los datos y los guarda en CSV. No se pidió explícitamente, pero sin él no se pueden leer los datos binarios.
+- **Esquemático** [`ParteExperimental/Esquematico_MotorDC.svg`](../ParteExperimental/Esquematico_MotorDC.svg): SVG editable en Inkscape. Los símbolos se redibujaron al estilo de ElCompLib, porque solo se tenía una imagen de la librería.
+- **Documentación:** dos md en `UsoIA/ParteExperimental/`, con los prompts copiados textualmente, encabezado, aviso, decisiones de diseño, observaciones del hardware y verificación. El md del programa incluye una copia del código.
+
+### Verificación
+- **Compilación:**
+  - Se compiló con avr-gcc 7.3.0 y el core AVR 1.8.6 (variante del Nano), con `-Wall -Wextra` y sin advertencias.
+  - Usa 5588 B de flash (17,1 %) y 493 B de RAM (24,1 %).
+  - Según el ensamblador, las interrupciones caben en los 26 µs entre muestras: unos 15 µs la del ADC y unos 6 µs la del encoder, como máximo.
+- **Decodificador:** se probó con 5000 tramas sintéticas, más un byte basura y una marca de pérdida. Las recuperó todas.
+- **Esquemático:** el XML es válido y se revisó visualmente.
+
+### Lo que la IA NO hizo o no pudo verificar
+- **No probó nada con el hardware real.** Tampoco verificó que 2 Mbaud funcione con el adaptador USB-serie y la computadora del equipo.
+- **Interpretó dos puntos que el prompt no especificaba**, que el equipo debe confirmar:
+  - el diodo 1N540X como diodo de rueda libre en paralelo con el motor;
+  - el ACS712T dentro del lazo de ese diodo.
+- **Dejó observaciones sin cambiar el diseño del autor:**
+  - el IRFZ44N no es de nivel lógico;
+  - el 1N540X es de recuperación lenta;
+  - A3 no tiene PWM por hardware, lo que importa para el futuro PID.
+- **No hizo commit ni push.**
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
+## Entrada 7 — 22/11/2026 · Driver del motor: pin PWM, análisis y simulaciones LTspice
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic; LTspice 24.0.12 |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`ParteExperimental/Simulaciones_Driver.md`](ParteExperimental/Simulaciones_Driver.md) (prompts textuales) · [`ReporteSimulaciones.md`](../ParteExperimental/Simulaciones/ReporteSimulaciones.md) (resultados) |
+
+### Solicitud
+1. **Pin con PWM** para la entrada del driver del motor.
+2. **Evaluar una etapa con un BJT 2N3904** para llevar la compuerta del IRFZ44N a 12 V y, si era adecuada, aplicarla al esquemático.
+3. **Simulaciones en GitHub:** subir las simulaciones de LTspice, creando con las hojas de datos los modelos que faltaran.
+4. **Evaluar las alternativas** que propuso el autor: el driver IR2153PBF, un push-pull lineal de un proyecto anterior (IE3036) y un controlador PWM.
+5. **Reporte** con las formas de onda de LTspice.
+6. **Cierre:** subir todo lo pendiente a GitHub y apagar la computadora al terminar.
+
+### Lo que hizo la IA
+- **Análisis de la etapa de 12 V.**
+  - **Un solo NPN:** se descartó porque enciende el motor con el pin en 0 V o flotando. Se verificó en LTspice: 2 A con el pin flotante.
+  - **NPN + PNP:** se simuló como alternativa no inversora.
+  - **IR2153PBF:** se descartó con su hoja de datos (oscila solo al 50 % y no tiene entrada lógica).
+  - **Push-pull lineal y puentes H:** se discutieron.
+- **Decisión del autor.** Con su dato de que la corriente se mantiene por debajo de 2 A, se mantuvo **el driver original (5 V directo a la compuerta)**, con la entrada en **D9** (PWM de Timer1).
+- **Programa:** `PIN_DRIVER_MOTOR = 9`, con una comprobación al compilar de que el pin sea D9 o D10, y el encabezado actualizado. Compila sin advertencias (5588 B de flash y 493 B de RAM).
+- **Esquemático:** la señal del driver sale de D9 por el lado digital del Nano. A3 queda libre.
+- **Simulaciones** (`ParteExperimental/Simulaciones/`):
+  - 11 netlists;
+  - modelos de la librería de LTspice;
+  - un **modelo del 1N540X creado con la hoja de Vishay** y verificado contra ella;
+  - el script `correr_simulaciones.py`, que corre todo y genera 6 figuras y la tabla de mediciones;
+  - el reporte con las formas de onda.
+- **README y `.gitignore`:** se actualizó la estructura y se excluyeron los archivos de salida de LTspice.
+
+### Resultados principales (motor modelado como 6 Ω y 2 mH)
+- **Escalón con 5 V directo:** V<sub>DS</sub> = 0,125 V y 0,23 W en el MOSFET; apaga en 0,48 µs. Es adecuado.
+- **PWM a 20 kHz al 95 %:** 1,77 W en el MOSFET con el 1N540X y 0,92 W con un Schottky. Con 490 Hz, 0,27 W. **Para el PID a 20 kHz hace falta disipador** y conviene un diodo Schottky.
+
+### Errores de la IA corregidos en esta entrada
+- **"Compuerta mal manejada".** En el chat dijo que la compuerta del diseño original estaba "mal manejada". Era una exageración: el diseño es correcto.
+- **Pérdidas con PWM.** En el chat estimó "unas décimas de watt" a 20 kHz sin simular. La simulación dio entre 0,9 y 1,8 W.
+- **Una medición de potencia mal definida (5,9 W falsos)** y **un netlist de capacitancia mal armado.** Las dos se corrigieron antes de publicar.
+- **Pines en un mismo lado.** La recomendación de la Entrada 6 de poner todos los pines del lado analógico se revirtió en parte: el driver pasó a D9 por el PWM.
+
+### Lo que la IA NO hizo
+- **No probó nada con hardware.** La inductancia del motor y el t<sub>rr</sub> del 1N540X siguen siendo supuestos.
+- **No simuló** el push-pull lineal de IE3036 ni los puentes H; solo se discutieron.
+
+### Decisiones del equipo
+- **Driver:** se mantiene el driver original (IRFZ44N, 180 Ω, 10 kΩ, 1N540X) con la entrada en D9 (decisión del autor, 22/11/2026).
+- *(pendiente: driver y frecuencia de PWM para el PID)*
+
+---
+
 ## Plantilla para nuevas entradas
 
 ```markdown
