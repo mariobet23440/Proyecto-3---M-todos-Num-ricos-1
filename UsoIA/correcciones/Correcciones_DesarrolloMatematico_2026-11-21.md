@@ -9,8 +9,8 @@
 | **Secciones revisadas** | Introducción (celdas 5–8), Parte 1: secciones 1.1 a 1.4 (celdas 10–12) |
 | **Fecha de la propuesta** | 21/11/2026 |
 | **Elaborado con** | Claude Code (Claude Opus 5.5, Anthropic), a pedido de Mario Betancourt. Ver [`BitacoraUsoIA.md`](../BitacoraUsoIA.md) |
-| **Referencias** | [`Referencias.md`](Referencias.md) |
-| **Última actualización** | 22/11/2026: C-15 verificada con el libro de Nise y notas agregadas en C-03 y C-16 |
+| **Referencias** | [`Referencias.md`](Referencias.md): solo para la cita del modelo del motor (C-15). **No respalda las demás correcciones** |
+| **Última actualización** | 22/11/2026: C-15 completada con los datos del libro de Nise. Se retiraron las notas de "respaldo bibliográfico" de C-03 y C-16, que estaban equivocadas (ver la Entrada 4 de la bitácora) |
 
 ---
 
@@ -170,8 +170,6 @@ La forma $(I+hA)\mathbf y_k$ sí es importante, pero para el **error**, no para 
 
 **Justificación:**
 Al calcular el Jacobiano del motor aparece la inercia dentro de él. La segunda fila es $\left(\frac{K_t}{J},\ -\frac{b}{J},\ 0\right)$, así que se escribiría "$J$ contiene $1/J$". Con notaciones distintas se evita la ambigüedad.
-
-**Respaldo bibliográfico:** Nise también llama $J_m$ a la inercia equivalente en la armadura [Nise 2015, §2.8, p. 79, Fig. 2.36]. Ver [`Referencias.md`](Referencias.md).
 
 **Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
 **Comentario del revisor:**
@@ -458,17 +456,14 @@ Celda 7:
 > "Para más información, véase N. S. Nise, *Control Systems Engineering*, 7.ª ed., Wiley, 2015, cap. 2, §2.8, pp. 77–83."
 
 Celda 8:
-> "A diferencia del modelo lineal presentado en Nise [1, §2.8], que considera solo fricción viscosa [1, p. 65, nota 8], …"
+> "A diferencia del modelo lineal presentado en Nise [1, §2.8], …"
 
 Además, agregar al cuaderno una sección **Referencias** con la entrada completa:
 > [1] N. S. Nise, *Control Systems Engineering*, 7th ed. Hoboken, NJ, USA: John Wiley & Sons, 2015.
 
-**Justificación:** ✅ **Verificada el 22/11/2026** con el PDF de la 7.ª edición que tiene el equipo:
-- El modelo del servomotor DC controlado por armadura está en el **capítulo 2, §2.8 "Electromechanical System Transfer Functions", pp. 77–83**, no en el capítulo 4. El capítulo 4 es *Time Response*.
-- La nota al pie 8 (p. 65) aclara que la fricción en todo el libro es viscosa, no de Coulomb. Eso confirma que el modelo de Nise es lineal, como dice la celda 8.
-- Las secciones §2.10 *Nonlinearities* (pp. 86–87) y §2.11 *Linearization* (p. 87 en adelante) sustentan la discusión de la celda 8 sobre la no linealidad y la linealización.
+**Justificación:** El cuaderno deja la cita sin completar. Según el PDF de la 7.ª edición que tiene el equipo, el modelo del servomotor DC controlado por armadura está en el **capítulo 2, §2.8 "Electromechanical System Transfer Functions", pp. 77–83**, no en el capítulo 4 (*Time Response*). Esta corrección solo completa la cita; no dice nada sobre el contenido matemático de la Parte 1.
 
-El detalle completo, con ISBN, formatos IEEE y APA y la tabla de equivalencias de notación, está en [`Referencias.md`](Referencias.md).
+Los datos bibliográficos completos (ISBN, formatos IEEE y APA) están en [`Referencias.md`](Referencias.md).
 
 **Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
 **Comentario del revisor:**
@@ -490,7 +485,7 @@ El detalle completo, con ISBN, formatos IEEE y APA y la tabla de equivalencias d
 | 4 | "Elemento de lista" (texto de plantilla en el historial) | Eliminar o reemplazar por una entrada real |
 | 3 | "Pongan sus nombres y (carnets)" | Completar con los integrantes |
 
-**Observación física opcional:** en unidades SI, $K_e$ (V·s/rad) y $K_t$ (N·m/A) son numéricamente iguales para un motor ideal. Sirve para verificar los parámetros del JGA25-370. Nise afirma lo mismo para $K_t$ y $K_b$ en un sistema de unidades consistente [Nise 2015, §2.8, p. 79]; él llama $K_b$ a lo que el cuaderno llama $K_e$.
+**Observación física opcional:** en unidades SI, $K_e$ (V·s/rad) y $K_t$ (N·m/A) son numéricamente iguales para un motor ideal. Sirve para verificar los parámetros del JGA25-370.
 
 **Decisión:** [ ] Aprobada [ ] Aprobada con cambios [ ] Rechazada
 **Comentario del revisor:**

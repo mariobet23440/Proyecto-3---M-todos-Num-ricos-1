@@ -113,7 +113,7 @@ Al listar los archivos, la IA dijo que parecía faltar la sección 1.3. Era un e
   - las citas sugeridas para las celdas 7 y 8.
 - **Documento de correcciones.**
   - **C-15** queda verificada: el motor DC está en el cap. 2, §2.8, no en el cap. 4 como decía el cuaderno.
-  - **C-03** y **C-16** tienen ahora respaldo del libro: la notación $J_m$ y la igualdad $K_t = K_b$ en unidades consistentes.
+  - ~~**C-03** y **C-16** tienen ahora respaldo del libro: la notación $J_m$ y la igualdad $K_t = K_b$ en unidades consistentes.~~ **Retirado: era un error de la IA. Ver Entrada 4.**
   - Se actualizaron los enlaces a la nueva estructura.
 - **Commit local** con estos cambios.
 
@@ -122,6 +122,42 @@ Al listar los archivos, la IA dijo que parecía faltar la sección 1.3. Era un e
 - **No subió el PDF del libro**, porque está protegido por derechos de autor. Solo se cita.
 - **No hizo push** a GitHub; solo el commit local.
 - **No incluyó `README.md` ni `.gitignore`** en el commit.
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
+## Entrada 4 — 22/11/2026 · Fe de erratas
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Detectado por** | Mario Betancourt |
+| **Commits afectados** | `0bf8fa9` (ya publicado en GitHub) |
+
+### Error de la IA
+En la Entrada 3, la IA presentó el libro de Nise como **respaldo de las correcciones propuestas**. Esto era incorrecto:
+
+- `Referencias.md` empezaba diciendo que la bibliografía "respalda las correcciones propuestas".
+- **C-03** decía tener "respaldo bibliográfico" porque Nise usa $J_m$ para la inercia. La corrección trata de un choque de notación dentro del cuaderno, y que Nise use $J_m$ no la justifica.
+- **C-16** citaba a Nise para la igualdad $K_t = K_b$. Es una observación física opcional, no una corrección del desarrollo matemático.
+- `Referencias.md` asociaba las secciones §2.10 y §2.11 y la nota al pie 8 con C-08 y con la discusión de la celda 8. Esa relación no existe.
+
+**Por qué era un error:** las correcciones C-01 a C-14 tratan de **métodos numéricos**: el método de Euler para sistemas, el Jacobiano, la estabilidad numérica y la notación matemática. El libro de Nise trata de modelado y control. No aborda esos temas y no puede respaldarlas. La IA vinculó el libro a las correcciones solo porque compartían términos (motor, inercia, linealización), sin que hubiera una relación real de respaldo.
+
+### Lo que hizo la IA para corregirlo
+- **`Referencias.md`.** Ahora es solo la referencia bibliográfica del modelo del motor que cita el cuaderno (celdas 7 y 8). Tiene una fe de erratas visible. Se quitaron las filas de p. 79, §2.10 y §2.11, y todas las menciones de que respalda C-03, C-08 o C-16.
+- **Documento de correcciones.**
+  - **C-03:** se eliminó la nota de "respaldo bibliográfico".
+  - **C-16:** se eliminó la cita a Nise.
+  - **C-15:** se limita a completar la cita (cap. 2, §2.8, pp. 77–83) y se dice que no afecta el contenido matemático.
+  - **Encabezado:** ahora aclara que la referencia no respalda las demás correcciones.
+- **Esta bitácora.** Se tachó la afirmación de la Entrada 3, sin borrarla, para que quede registro del error.
+
+### Lo que sigue siendo válido
+- Los datos bibliográficos del libro (7.ª ed., Wiley, 2015, ISBN) y la ubicación del modelo del motor (§2.8, pp. 77–83), que es lo que pide completar C-15.
+- Las correcciones C-01 a C-16 **no dependían** del libro. Su contenido matemático no cambia con esta fe de erratas, y sigue pendiente de la revisión del equipo.
 
 ### Decisiones del equipo
 - *(pendiente)*
