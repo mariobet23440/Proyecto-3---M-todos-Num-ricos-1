@@ -164,6 +164,55 @@ En la Entrada 3, la IA presentó el libro de Nise como **respaldo de las correcc
 
 ---
 
+## Entrada 5 — 22/11/2026 · Aplicación de correcciones aprobadas
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Insumo** | Rama `MarioBetancourt04-patch-1` (commit `a9b6dcf`), con las decisiones y los comentarios del revisor |
+
+### Solicitud
+1. Ejecutar las correcciones según los comentarios del revisor.
+2. Hacer merge de la rama de revisión a `main`.
+
+### Pregunta del autor antes de aplicar
+El autor preguntó si C-01 era correcta, porque le hacía sentido que fuera el Jacobiano. La IA la verificó de nuevo con dos pruebas:
+- **Contraejemplo escalar.** Para $y' = y^2$, el Jacobiano es $J = 2y$, así que $Jy = 2y^2 \neq y'$.
+- **Simulación del motor desde el reposo con 12 V.** Con Euler, el motor arranca. Con $(I+hJ)\mathbf y_k$, el estado se queda en cero, porque los términos constantes ($V/L$) no caben en el Jacobiano.
+
+El revisor aprobó C-01 con ese mismo argumento.
+
+### Lo que hizo la IA
+- **Merge.** Hizo merge de `MarioBetancourt04-patch-1` en `main`. Hubo un conflicto en C-03: se conservaron la decisión y el comentario del revisor, y se mantuvo retirada la nota de "respaldo bibliográfico" de Nise (fe de erratas, Entrada 4).
+- **Cuaderno (commit `760c312`).** Aplicó las 14 correcciones aprobadas, siguiendo las instrucciones de los comentarios:
+  - **C-01:** reemplazó el Jacobiano por el campo vectorial $\mathbf f$ en la deducción del método (1.2) y movió la definición del Jacobiano a la sección de estabilidad (1.4). El revisor lo pidió así: *"reemplazar todas las apariciones del Jacobiano en las deducciones del método por el campo vectorial f, excepto en la sección de análisis de estabilidad"*.
+  - **C-02:** quitó $(1+hJ)\mathbf y_k$ sin presentar el caso lineal.
+  - **C-06:** separó la propagación del error y el error local, **sin** agregar el criterio de valores propios. La diagonalización la revisará el autor.
+  - **C-08:** agregó la observación sobre la fricción de Coulomb, con el matiz del revisor sobre el punto de operación, y sin análisis de valores propios.
+  - **C-13:** atendió la nota escondida del autor, "(revisar notación de conjunto)".
+  - **C-03, C-04, C-05, C-07, C-09, C-10, C-11, C-14 y C-16:** aplicadas como estaban propuestas.
+- **No aplicó** las correcciones rechazadas:
+  - **C-12:** se mantiene $x$ en las demostraciones.
+  - **C-15:** el texto pendiente de la cita a Nise queda como está.
+- **Verificación.**
+  - Solo cambiaron los textos de las celdas 4, 6, 7, 8, 10, 11 y 12. Los ids, los metadatos y el enlace de Colab siguen igual.
+  - Las 136 expresiones LaTeX del cuaderno compilan en MathJax 3.2.2 sin errores, y no queda ningún `$` sin cerrar.
+- **Documento de correcciones.**
+  - Llenó la tabla *Resumen de decisiones* con lo que indicó el revisor.
+  - Eliminó la sección *Aprobación final del equipo*, como pidió el revisor.
+  - Actualizó el aviso y el estado del encabezado.
+
+### Lo que la IA NO hizo
+- **No completó la lista de integrantes** ("Pongan sus nombres y (carnets)"), porque no conoce los nombres.
+- **No agregó la observación física $K_e = K_t$** (C-16, opcional), porque el cuaderno todavía no tiene parámetros numéricos.
+- **No hizo push** a GitHub.
+
+### Decisiones del equipo
+- Las 16 decisiones están en el documento de correcciones (revisor: Mario Alejandro Betancourt Franco).
+
+---
+
 ## Plantilla para nuevas entradas
 
 ```markdown

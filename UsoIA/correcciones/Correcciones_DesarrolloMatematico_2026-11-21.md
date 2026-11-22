@@ -11,13 +11,14 @@
 | **Elaborado con** | Claude Code (Claude Opus 5.5, Anthropic), a pedido de Mario Betancourt. Ver [`BitacoraUsoIA.md`](../BitacoraUsoIA.md) |
 | **Referencias** | [`Referencias.md`](Referencias.md): solo para la cita del modelo del motor (C-15). **No respalda las demás correcciones** |
 | **Última actualización** | 22/11/2026: C-15 completada con los datos del libro de Nise. Se retiraron las notas de "respaldo bibliográfico" de C-03 y C-16, que estaban equivocadas (ver la Entrada 4 de la bitácora) |
+| **Estado** | **Revisado.** 14 correcciones aprobadas y aplicadas al cuaderno en el commit `760c312`; C-12 y C-15 rechazadas. Ver [Resumen de decisiones](#resumen-de-decisiones) |
 
 ---
 
 > [!WARNING]
 > **Aviso importante.** Este documento lo generó una herramienta de inteligencia artificial y contiene **solo propuestas**.
-> Ninguna corrección se ha aplicado al cuaderno. **Cada corrección debe ser revisada y aprobada por los
-> miembros del equipo** antes de incorporarse al trabajo. La IA puede equivocarse: verifiquen cada argumento
+> **Cada corrección debe ser revisada y aprobada por los miembros del equipo** antes de incorporarse
+> al trabajo. Las aprobadas ya se aplicaron al cuaderno (ver el estado arriba). La IA puede equivocarse: verifiquen cada argumento
 > con la bibliografía del curso y con su propio criterio. La responsabilidad sobre el contenido final del
 > proyecto es del equipo.
 
@@ -511,28 +512,26 @@ Para que quede registro, estas partes no necesitan cambios de fondo:
 
 ## Resumen de decisiones
 
-Para llenar al terminar la revisión.
+Llenada por la IA a pedido del revisor, a partir de las decisiones y los comentarios de cada corrección. Revisor: Mario Alejandro Betancourt Franco, 22/11/2026.
 
 | ID | Aprobada | Con cambios | Rechazada | Aplicada al cuaderno (commit) |
 |----|:--------:|:-----------:|:---------:|-------------------------------|
-| C-01 | | | | |
-| C-02 | | | | |
-| C-03 | | | | |
-| C-04 | | | | |
-| C-05 | | | | |
-| C-06 | | | | |
-| C-07 | | | | |
-| C-08 | | | | |
-| C-09 | | | | |
-| C-10 | | | | |
-| C-11 | | | | |
-| C-12 | | | | |
-| C-13 | | | | |
-| C-14 | | | | |
-| C-15 | | | | |
-| C-16 | | | | |
-
-Le voy a pedir a Claude que la llene por mí con las observaciones que puse antes.
+| C-01 | X | | | `760c312`: en 1.2, el Jacobiano se reemplaza por el campo vectorial $\mathbf f$; la definición del Jacobiano se mueve a 1.4 |
+| C-02 | X | | | `760c312`: se quitó $(1+hJ)\mathbf y_k$. **No** se presenta el caso lineal, por decisión del revisor |
+| C-03 | X | | | `760c312`: $J \to J_m$ (inercia), $J \to \mathbf J_{\mathbf f}$ (Jacobiano) |
+| C-04 | X | | | `760c312` |
+| C-05 | X | | | `760c312` |
+| C-06 | X | | | `760c312`: separación entre propagación y error local $\mathbf T_k$. **Sin** el criterio de valores propios: la diagonalización la revisará el autor |
+| C-07 | X | | | `760c312` |
+| C-08 | X | | | `760c312`: observación al final de 1.4. Incluye el matiz del revisor: alrededor de un punto de operación con $\omega\neq0$ sí se puede linealizar. **Sin** análisis de valores propios ni rigidez, por la decisión de C-06 |
+| C-09 | X | | | `760c312` |
+| C-10 | X | | | `760c312` |
+| C-11 | X | | | `760c312` |
+| C-12 | | | X | No se aplica: se mantiene $x$ como variable independiente en las demostraciones generales |
+| C-13 | X | | | `760c312`: incluye la nota opcional de que el modelo del motor ya es de primer orden |
+| C-14 | X | | | `760c312` |
+| C-15 | | | X | No se aplica: Nise se usa solo para comparar con un modelo lineal, no como base del proyecto |
+| C-16 | X | | | `760c312`: no se aplicaron "completar integrantes" (la IA no conoce los nombres) ni la observación física opcional $K_e = K_t$ (el cuaderno aún no tiene parámetros) |
 
 ---
 
@@ -573,9 +572,3 @@ Espacio para que cada revisor anote observaciones generales, desacuerdos con la 
 &nbsp;
 
 &nbsp;
-
----
-
-**Aprobación final del equipo** (cuando todas las correcciones tengan una decisión):
-
-Quiero quitar esta parte, no necesito la aprobación de otros para hacer estos cambios. Estos quedan documentados y hay flexibilidad para que ellos revisen y hagan más cambios.
