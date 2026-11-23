@@ -775,6 +775,50 @@ Hey pero el motor parece estar girando en una sola dirección en estos ensayos. 
 
 ---
 
+## Entrada 17 — 22/11/2026 · Ensayos sin carga, integración del cuadernillo y secciones nuevas
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+
+### Solicitud
+- **Ensayos:** repetir la secuencia de ensayos sin carga (las mediciones anteriores eran con un cilindro de PVC).
+- **Cuadernillo:** integrar el cuadernillo de Grettel y Deyler (`Import/GrettelDeyler2`) y rehacer el análisis con y sin cilindro.
+- **Secciones y gráficas:**
+  - objetivos y conclusiones;
+  - Heun, RK2 y RK4 en la Parte 1;
+  - métodos propios contra la medición;
+  - Euler con el campo vectorial variando h;
+  - error de derivación contra h;
+  - Richardson contra conteo en ventana;
+  - tabla de integrales;
+  - PID real con las constantes y el diagrama de bloques.
+
+### Lo que hizo la IA
+- **Ensayos sin carga** con el motor real: `ParteExperimental/datos/tema4_sin_carga_20261122/` (escalones a 5 niveles, desaceleración libre y con freno). Las 4 pruebas del PID sin carga **no se pudieron hacer**: el puerto estaba ocupado por la app.
+- **Excel** `mediciones_motor_dc.xlsx` (en la raíz):
+  - pruebas SC (sin carga, hoy) y CC (cilindro de PVC, antes), remuestreadas a ~2 kHz;
+  - se conservaron los parámetros que llenó el equipo (R = 6,4 Ω y el cilindro);
+  - R, los pulsos por vuelta y J se escribieron como valores, porque Python no lee fórmulas sin calcular.
+- **Cuadernillo:**
+  - base: el de Grettel y Deyler, más el enlace de Colab;
+  - se corrigieron dos funciones para los datos reales: `validar_tests` (aceptaba ningún retroceso del encoder) y `regimen_estacionario` (tomaba el final de la prueba, que es la fase libre);
+  - se agregaron 18 celdas: objetivos, 1.3, 2.7, 2.8, 3.6.1, 4.1.1, 4.4, 5.2, 5.2.1 y conclusiones.
+- **Ejecución:** el cuadernillo se ejecutó completo con nbconvert, con 0 errores.
+
+### Verificación
+- **Consistencia de los métodos:** Euler, Heun, RK2 y RK4 coinciden entre sí (diferencia máxima de 1,7 rad/s), pero difieren de la medición (RMSE de ≈ 97 rad/s). La discrepancia es del modelo o de los parámetros (voltaje real no proporcional al PWM), no del método.
+- **Estabilidad de Euler:** paso crítico de 0,64 ms con los parámetros estimados.
+
+### Lo que la IA NO hizo o no pudo verificar
+- **Conclusiones y textos nuevos:** son borradores generados por la IA; el equipo debe revisarlos y poder explicarlos.
+- **Inercia del cilindro:** no se confirmó la reducción de la caja. El efecto casi nulo del cilindro se explica como una hipótesis (inercia reflejada entre N²).
+- **Informe IEEE y video:** no se hicieron.
+- **No hizo commit.**
+
+---
+
 ## Plantilla para nuevas entradas
 
 ```markdown
