@@ -95,6 +95,12 @@ Corrige el PID, y los esquemáticos. Ya no necesito simulaciones (quítalas)
 | ENC | Encoder Hall de cuadratura | Integrado en el JGA25-370 |
 | V1 | Fuente de alimentación | 12 V |
 
+### Error de montaje encontrado (22/11/2026)
+
+En el primer montaje, un cable de **GND se conectó por error a VIN** del Nano. En el lado de A0–A7, los últimos pines son 5V, RST, GND y VIN, así que GND y VIN quedan juntos. Con eso el ACS712 quedó sin tierra y su LED no encendía; al pasar el cable a GND, el LED encendió.
+
+Al mismo tiempo, el L298N se calentaba sin que el motor girara; no se ha confirmado si era por la misma causa. La revisión paso a paso está en la sección 9 del [manual de la aplicación](../../ParteExperimental/GemeloDigital/MANUAL.md).
+
 ### Interpretaciones de la IA
 
 El equipo debe confirmarlas:

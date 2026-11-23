@@ -48,6 +48,7 @@ import estilo as E
 
 FAMILIAS = E.cargar_fuentes()
 E.estilo_matplotlib(FAMILIAS)
+sys.setswitchinterval(0.001)   # El hilo que lee el puerto recupera el intérprete más seguido
 
 import protocolo_motor as P                    # noqa: E402
 import postprocesamiento as PP                 # noqa: E402
@@ -60,7 +61,9 @@ CONFIG_INICIAL = {
     "puerto": "", "baudios": P.BAUDIOS,
     "ppr": 11.0, "reduccion": 1.0, "vref": 5.0, "sensibilidad": 0.185, "cero_adc": 512.0,
     "invertir_encoder": False, "invertir_corriente": False,
-    "kp": 0.05, "ki": 0.0, "kd": 0.0, "ts_ms": 2.0, "tau_ms": 8.0,
+    # Ganancias sintonizadas en el motor del equipo el 22/11/2026 (ver datos/tema4_20261122/LEEME.md).
+    "kp": 0.04, "ki": 0.4, "kd": 0.0, "ts_ms": 5.0, "tau_ms": 10.0,
+    "ganancias_modo": {"1": [0.0, 0.0, 0.0], "2": [0.04, 0.4, 0.0], "3": [3.0, 5.0, 0.06]},
     "antiwindup": True, "envio_automatico": True,
     "modo_pid": 2, "ref_tipo": 0, "ref_amp": 0.0, "ref_off": 100.0, "ref_f": 0.5,
     "cap_pwm": 255, "cap_sentido": 1, "cap_freno": 0, "cap_t0": 200, "cap_t1": 1500, "cap_t2": 1500,
@@ -69,6 +72,14 @@ CONFIG_INICIAL = {
     "motor": ParametrosMotor().a_dict(), "metodo": "RK4", "h_modelo": 2.5e-4,
     "carpeta_datos": str(CARPETA.parent / "datos"), "ventana_s": 5.0,
 }
+
+
+def ganancias_del_modo(cfg, modo):
+    """(Kp, Ki, Kd) guardadas para el modo (2 velocidad, 3 posición)."""
+    valores = cfg.get("ganancias_modo", {}).get(str(modo))
+    if valores is None:
+        valores = CONFIG_INICIAL["ganancias_modo"].get(str(modo), [cfg["kp"], cfg["ki"], cfg["kd"]])
+    return tuple(float(v) for v in valores)
 
 
 def hexa(rgb):
@@ -307,11 +318,19 @@ class App(ctk.CTk):
         self._k_prev = None
 
     def enviar(self, letra, *valores):
+        """Envía una orden. Las que responden "# OK" se reenvían hasta que el
+        Arduino las confirma (a alta velocidad a veces se pierde un byte)."""
         if not self.enlace:
             return False
         try:
-            self.enlace.enviar(P.orden(letra, *valores))
-            return True
+            if letra in ("?", "H", "E"):
+                self.enlace.enviar(P.orden(letra, *valores))
+                return True
+            if self.enlace.enviar_confirmado(letra, *valores):
+                return True
+            self.log(f"! El Arduino no confirmó la orden '{P.texto_orden(letra, *valores)}'. "
+                     "¿Tiene cargada la última versión de MotorDC_L298N.ino?")
+            return False
         except Exception as e:
             self.log(f"! Error al enviar: {e}")
             return False
@@ -319,12 +338,13 @@ class App(ctk.CTk):
     def enviar_configuracion(self):
         c = self.cfg
         self.enviar("X")
-        self.enviar("S", 1)
+        self.enviar("S", P.decimacion_telemetria(c["ts_ms"]))
         self.enviar("P", float(self.cuentas_por_vuelta()), float(self.cfg["motor"]["v_bus"]))
         self.enviar("T", float(c["ts_ms"]))
         self.enviar("F", float(c["tau_ms"]))
         self.enviar("K", float(c["kp"]), float(c["ki"]), float(c["kd"]))
         self.enviar("A", int(c["antiwindup"]))
+        self.enviar("I", int(c["invertir_encoder"]))
         self.enviar("?")
         self._k_prev = None
 
@@ -363,6 +383,12 @@ class App(ctk.CTk):
         self.after(25, self._bucle_eventos)
 
     def _bucle_animacion(self):
+        # Durante la captura rápida no se dibuja nada: dibujar con matplotlib y
+        # Pillow ocupa el intérprete de Python, el hilo que lee el puerto se
+        # atrasa y el driver USB pierde bytes (se observó en las capturas reales).
+        if self.enlace and self.enlace.en_captura:
+            self.after(100, self._bucle_animacion)
+            return
         try:
             self.paginas[self.pagina_actual].refrescar()
         except Exception as e:                      # Un error de dibujo no debe parar la app
@@ -380,7 +406,8 @@ class App(ctk.CTk):
                                       text_color=E.AMARILLO if self.simulado else E.VERDE)
             self.lbl_info.configure(text=f"MODO  {P.MODOS.get(self.ultimo['modo'], '?')}\n"
                                          f"TRAMAS {self._tramas_seg / dt:6.0f}/s\nRX    {kbs:6.1f} kB/s\n"
-                                         f"MALAS {self.enlace.parser.tramas_malas}")
+                                         f"MALAS {self.enlace.parser.tramas_malas}\n"
+                                         f"REENVIOS {self.enlace.reintentos}")
         else:
             self.lbl_estado.configure(text="DESCONECTADO", text_color=E.ROJO)
             self.lbl_info.configure(text="")
@@ -545,9 +572,9 @@ class PaginaConexion(Pagina):
         self.c_vbus.pack(side="right")
         self.sw_inv_i, self.v_inv_i = interruptor(m, "INVERTIR SIGNO DE LA CORRIENTE", app.cfg["invertir_corriente"])
         self.sw_inv_i.pack(anchor="w", padx=10, pady=4)
-        self.sw_inv_e, self.v_inv_e = interruptor(m, "INVERTIR ENCODER (SOLO CAPTURA RAPIDA)", app.cfg["invertir_encoder"])
+        self.sw_inv_e, self.v_inv_e = interruptor(m, "INVERTIR ENCODER", app.cfg["invertir_encoder"])
         self.sw_inv_e.pack(anchor="w", padx=10, pady=4)
-        etiqueta(m, "Si el encoder cuenta al reves en tiempo real,\nintercambiar los cables A y B (el PID usa ese signo).",
+        etiqueta(m, "Activelo si con el motor ADELANTE la posicion baja:\nel PID necesita que el encoder cuente hacia arriba.",
                  E.TENUE, justify="left").pack(anchor="w", padx=10)
         fila = ctk.CTkFrame(m, fg_color=E.PANEL)
         fila.pack(fill="x", padx=10, pady=10)
@@ -568,7 +595,7 @@ class PaginaConexion(Pagina):
         self.c_orden.pack(side="left", fill="x", expand=True)
         self.c_orden.bind("<Return>", lambda e: self._orden_manual())
         boton(fila, "ENVIAR", self._orden_manual, E.CIAN, ancho=110, alto=30).pack(side="left", padx=6)
-        etiqueta(der, "Ordenes: ? H X M K T F P R A S Z C E (ver la seccion 8 del .ino)", E.TENUE).pack(
+        etiqueta(der, "Ordenes: ? H X M K T F P R A I S Z C E (ver la seccion 8 del .ino)", E.TENUE).pack(
             anchor="w", padx=10, pady=(0, 8))
         self.buscar_puertos()
         self._actualizar_cpr()
@@ -600,6 +627,7 @@ class PaginaConexion(Pagina):
         self.app.guardar_cfg()
         self.app.sincronizar_gemelo()
         self.app.enviar("P", float(self.app.cuentas_por_vuelta()), float(cfg["motor"]["v_bus"]))
+        self.app.enviar("I", int(cfg["invertir_encoder"]))
         self._actualizar_cpr()
         self.app.log("> Configuración del hardware aplicada.")
 
@@ -806,13 +834,21 @@ class PaginaPID(Pagina):
             p.fijar(p.valor, avisar=False)
 
     def _cambiar_modo(self, _=None):
-        self.app.cfg["modo_pid"] = self.modo()
+        """Cada modo recuerda sus propias ganancias (velocidad y posición son
+        plantas distintas: las de una no sirven para la otra)."""
+        cfg = self.app.cfg
+        cfg["modo_pid"] = self.modo()
+        kp, ki, kd = ganancias_del_modo(cfg, self.modo())
+        for perilla, valor in ((self.p_kp, kp), (self.p_ki, ki), (self.p_kd, kd)):
+            perilla.fijar(valor, avisar=False)
+        cfg["kp"], cfg["ki"], cfg["kd"] = kp, ki, kd
         self._ajustar_rangos()
         self._formula()
 
     def _ganancias(self, _=None):
         cfg = self.app.cfg
         cfg["kp"], cfg["ki"], cfg["kd"] = self.p_kp.valor, self.p_ki.valor, self.p_kd.valor
+        cfg.setdefault("ganancias_modo", {})[str(self.modo())] = [cfg["kp"], cfg["ki"], cfg["kd"]]
         if self.v_auto.get():
             self.app.enviar("K", cfg["kp"], cfg["ki"], cfg["kd"])
 
@@ -820,6 +856,7 @@ class PaginaPID(Pagina):
         self.app.cfg["ts_ms"] = valor
         if self.v_auto.get():
             self.app.enviar("T", float(valor))
+            self.app.enviar("S", P.decimacion_telemetria(valor))
 
     def _filtro(self, valor):
         self.app.cfg["tau_ms"] = valor
@@ -851,6 +888,7 @@ class PaginaPID(Pagina):
         cfg["ts_ms"], cfg["tau_ms"] = self.p_ts.valor, self.p_tau.valor
         a = self.app
         a.enviar("T", float(cfg["ts_ms"]))
+        a.enviar("S", P.decimacion_telemetria(cfg["ts_ms"]))
         a.enviar("F", float(cfg["tau_ms"]))
         a.enviar("K", float(cfg["kp"]), float(cfg["ki"]), float(cfg["kd"]))
         a.enviar("A", int(self.v_aw.get()))
@@ -1023,7 +1061,7 @@ class PaginaEnsayos(Pagina):
 
     def captura_recibida(self, captura):
         a = self.app
-        a.enviar("S", 1)
+        a.enviar("S", P.decimacion_telemetria(a.cfg["ts_ms"]))
         a._k_prev = None
         carpeta = Path(a.cfg["carpeta_datos"])
         base = carpeta / f"{self._tipo_ensayo}_{time.strftime('%Y%m%d_%H%M%S')}"
@@ -1070,8 +1108,10 @@ class PaginaEnsayos(Pagina):
         cfg = a.cfg
         a.enviar("X")
         a.enviar("T", float(cfg["ts_ms"]))
+        a.enviar("S", P.decimacion_telemetria(cfg["ts_ms"]))
         a.enviar("F", float(cfg["tau_ms"]))
-        a.enviar("K", float(cfg["kp"]), float(cfg["ki"]), float(cfg["kd"]))
+        kp, ki, kd = ganancias_del_modo(cfg, cfg["seguir_modo"])     # Las del modo que se va a seguir
+        a.enviar("K", float(kp), float(ki), float(kd))
         a.enviar("Z")
         a.sincronizar_gemelo()
         a.gemelo.reiniciar(0.0, 0.0)
@@ -1097,6 +1137,13 @@ class PaginaEnsayos(Pagina):
     def _desde_tiempo_real(self, x, titulo, modo):
         t = x[:, 0] - x[0, 0]
         ref = x[:, 4]
+        if x.shape[1] < 14:
+            # Archivo de prueba_pid.py (sin columnas del gemelo): el gemelo se
+            # simula con el mismo voltaje que se aplicó al motor.
+            u = x[:, 6]
+            sim = simular(t, u, np.abs(u) < 1e-3, self.app.parametros_motor(),
+                          self.app.cfg["metodo"], self.app.cfg["h_modelo"])
+            x = np.column_stack([x[:, :11], sim["theta"] + x[0, 3], sim["omega"], sim["i"]])
         resumen = {"muestras": len(t), "duracion_s": float(t[-1]),
                    "error_rms": float(np.sqrt(np.mean((ref - (x[:, 3] if modo == 3 else x[:, 5])) ** 2))),
                    "saturado_%": float(100 * np.mean((x[:, 10].astype(int) & 1) > 0))}
@@ -1275,7 +1322,7 @@ class PaginaCaptura(Pagina):
         for w in self.lista.winfo_children():
             w.destroy()
         carpeta = Path(self.app.cfg["carpeta_datos"])
-        archivos = sorted(carpeta.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True) if carpeta.is_dir() else []
+        archivos = sorted(carpeta.rglob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True) if carpeta.is_dir() else []
         archivos = [a for a in archivos if not a.name.endswith("_resumen.json")]
         if not archivos:
             etiqueta(self.lista, "(no hay capturas todavia)", E.TENUE).pack(anchor="w")
@@ -1287,7 +1334,8 @@ class PaginaCaptura(Pagina):
             fila = ctk.CTkFrame(self.lista, fg_color=E.PANEL, corner_radius=0)
             fila.pack(fill="x", pady=2)
             color = E.NARANJA if tipo == "captura_rapida" else E.CIAN
-            etiqueta(fila, f"{ruta.stem:42s} {tipo:16s} {time.strftime('%d/%m %H:%M', time.localtime(ruta.stat().st_mtime))}",
+            nombre = str(ruta.relative_to(carpeta).with_suffix(""))
+            etiqueta(fila, f"{nombre:52s} {tipo:16s} {time.strftime('%d/%m %H:%M', time.localtime(ruta.stat().st_mtime))}",
                      color).pack(side="left", padx=8)
             boton(fila, "VER", lambda r=ruta: self.app.paginas["ensayos"].abrir_archivo(r), color,
                   ancho=80, alto=28).pack(side="right", padx=4, pady=2)

@@ -45,18 +45,30 @@ from protocolo_motor import cargar_captura_rapida
 TABLA_CUADRATURA = np.array([0, -1, +1, 0, +1, 0, 0, -1, -1, 0, 0, +1, 0, +1, -1, 0], dtype=np.int8)
 
 
-def decodificar_cuadratura(a, b, invertir=False):
+def decodificar_cuadratura(a, b, invertir=False, corregir_saltos=True):
     """Devuelve (cuenta acumulada por muestra, número de saltos inválidos).
 
     Un salto inválido (A y B cambian a la vez entre dos muestras) significa que
-    el encoder cambió más rápido de lo que se muestreó: se pierde una cuenta.
+    se saltó un estado del encoder. Con el motor del proyecto hay unas 25
+    muestras por estado, así que no es por muestrear lento: en las capturas
+    reales del equipo los saltos coincidieron con tramas perdidas en el
+    puerto USB. Con corregir_saltos=True, cada salto se cuenta como ±2 en el
+    sentido del último paso válido (el motor no invierte su giro en una
+    muestra); con False, se cuenta como 0, como antes.
     """
     s = (np.asarray(a, dtype=np.int16) << 1) | np.asarray(b, dtype=np.int16)
     if len(s) < 2:
         return np.zeros(len(s), dtype=np.int64), 0
     previo, actual = s[:-1], s[1:]
     pasos = TABLA_CUADRATURA[(previo << 2) | actual].astype(np.int64)
-    invalidos = int(np.count_nonzero((previo ^ actual) == 3))
+    saltos = (previo ^ actual) == 3
+    invalidos = int(np.count_nonzero(saltos))
+    if corregir_saltos and invalidos:
+        # Sentido del último paso válido antes de cada muestra (0 si no hubo ninguno).
+        indices = np.where(pasos != 0, np.arange(len(pasos)), -1)
+        ultimo = np.maximum.accumulate(indices)
+        sentido = np.where(ultimo >= 0, pasos[np.clip(ultimo, 0, None)], 0)
+        pasos = np.where(saltos, 2 * sentido, pasos)
     cuenta = np.concatenate([[0], np.cumsum(pasos)])
     return (-cuenta if invertir else cuenta), invalidos
 

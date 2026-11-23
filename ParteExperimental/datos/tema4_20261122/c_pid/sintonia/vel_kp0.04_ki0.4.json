@@ -1,0 +1,93 @@
+{
+  "tipo": "prueba_pid",
+  "fecha": "2026-11-22 19:05:31",
+  "argumentos": {
+    "puerto": "COM7",
+    "baudios": 1000000,
+    "modo": "vel",
+    "kp": 0.04,
+    "ki": 0.4,
+    "kd": 0.0,
+    "ts": 5.0,
+    "tau": 10.0,
+    "tipo": "cuadrada",
+    "amp": 100.0,
+    "off": 300.0,
+    "f": 0.5,
+    "duracion": 6.0,
+    "cpr": 44.0,
+    "vbus": 12.0,
+    "invertir_encoder": 1,
+    "antiwindup": 1,
+    "vref": 5.0,
+    "sensibilidad": 0.185,
+    "cero": null,
+    "decimacion": 1,
+    "salida": "datos/tema4_20261122/c_pid/sintonia/vel_kp0.04_ki0.4"
+  },
+  "cero_adc": 515.9773513139696,
+  "resumen": {
+    "error_rms": 37.8491,
+    "saturado_%": 0.24,
+    "periodos_atrasados_%": 0.0,
+    "reenvios_de_ordenes": 1,
+    "tramas": 1255,
+    "huecos_en_k": 0
+  },
+  "escalones": [
+    {
+      "t_inicio_s": 1.0,
+      "de": 400.0,
+      "a": 200.0,
+      "sobreimpulso_%": 7.78,
+      "t_establecimiento_5%_s": 0.185,
+      "error_final_medio": 0.1118,
+      "rizado_final_std": 5.6571
+    },
+    {
+      "t_inicio_s": 2.0,
+      "de": 200.0,
+      "a": 400.0,
+      "sobreimpulso_%": 6.12,
+      "t_establecimiento_5%_s": 0.16,
+      "error_final_medio": 0.1609,
+      "rizado_final_std": 0.0
+    },
+    {
+      "t_inicio_s": 3.0,
+      "de": 400.0,
+      "a": 200.0,
+      "sobreimpulso_%": 5.52,
+      "t_establecimiento_5%_s": 0.21,
+      "error_final_medio": 0.055,
+      "rizado_final_std": 5.6697
+    },
+    {
+      "t_inicio_s": 4.0,
+      "de": 200.0,
+      "a": 400.0,
+      "sobreimpulso_%": 6.79,
+      "t_establecimiento_5%_s": 0.135,
+      "error_final_medio": 0.1609,
+      "rizado_final_std": 0.0
+    },
+    {
+      "t_inicio_s": 5.0,
+      "de": 400.0,
+      "a": 200.0,
+      "sobreimpulso_%": 8.73,
+      "t_establecimiento_5%_s": 0.22,
+      "error_final_medio": 0.1919,
+      "rizado_final_std": 4.159
+    },
+    {
+      "t_inicio_s": 6.0,
+      "de": 200.0,
+      "a": 400.0,
+      "sobreimpulso_%": 5.96,
+      "t_establecimiento_5%_s": 0.175,
+      "error_final_medio": 0.1103,
+      "rizado_final_std": 0.0567
+    }
+  ]
+}

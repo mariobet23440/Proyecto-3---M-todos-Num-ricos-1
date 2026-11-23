@@ -1,0 +1,38 @@
+{
+  "tipo": "prueba_pid",
+  "fecha": "2026-11-22 19:10:57",
+  "argumentos": {
+    "puerto": "COM7",
+    "baudios": 1000000,
+    "modo": "pos",
+    "kp": 3.0,
+    "ki": 5.0,
+    "kd": 0.06,
+    "ts": 5.0,
+    "tau": 10.0,
+    "tipo": "seno",
+    "amp": 31.416,
+    "off": 0.0,
+    "f": 0.25,
+    "duracion": 12.0,
+    "cpr": 44.0,
+    "vbus": 12.0,
+    "invertir_encoder": 1,
+    "antiwindup": 1,
+    "vref": 5.0,
+    "sensibilidad": 0.185,
+    "cero": null,
+    "decimacion": 1,
+    "salida": "datos/tema4_20261122/c_pid/posicion_seno_5vueltas"
+  },
+  "cero_adc": 516.1568134535368,
+  "resumen": {
+    "error_rms": 0.3322,
+    "saturado_%": 0.0,
+    "periodos_atrasados_%": 0.0,
+    "reenvios_de_ordenes": 1,
+    "tramas": 2435,
+    "huecos_en_k": 0
+  },
+  "escalones": []
+}

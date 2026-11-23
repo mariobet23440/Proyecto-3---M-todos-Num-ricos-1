@@ -30,7 +30,7 @@ import sys
 import time
 from pathlib import Path
 
-from protocolo_motor import BAUDIOS, EnlaceSerie, guardar_captura_rapida, orden
+from protocolo_motor import BAUDIOS, EnlaceSerie, guardar_captura_rapida
 
 
 def main():
@@ -59,9 +59,11 @@ def main():
         time.sleep(2.0)                      # El Nano se reinicia al abrir el puerto
 
     try:
-        enlace.enviar(orden("X"))            # Motor en reposo
-        enlace.enviar(orden("S", 0))         # Sin telemetría durante la configuración
-        enlace.enviar(orden("C", args.pwm, -1 if args.reversa else 1, int(args.freno), args.t0, args.t1, args.t2))
+        # Órdenes confirmadas: a alta velocidad el Arduino a veces pierde un byte.
+        for letra, *valores in (("X",), ("S", 0),
+                                ("C", args.pwm, -1 if args.reversa else 1, int(args.freno), args.t0, args.t1, args.t2)):
+            if not enlace.enviar_confirmado(letra, *valores):
+                sys.exit(f"El Arduino no confirmó la orden {letra}. ¿Tiene cargada la última versión del .ino?")
         time.sleep(0.3)
         enlace.iniciar_captura()
         print("Captura en curso...")
@@ -83,7 +85,7 @@ def main():
             elif tipo == "progreso":
                 print(f"\r  {100 * valor:5.1f} %", end="", flush=True)
         print()
-        enlace.enviar(orden("S", 1))         # Vuelve a la telemetría normal
+        enlace.enviar_confirmado("S", 1)     # Vuelve a la telemetría normal
     finally:
         enlace.cerrar()
 

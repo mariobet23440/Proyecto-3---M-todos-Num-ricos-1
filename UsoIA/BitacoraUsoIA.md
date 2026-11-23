@@ -608,7 +608,167 @@ Corrige el PID, y los esquemáticos. Ya no necesito simulaciones (quítalas)
 ### Lo que la IA NO hizo
 - **No quitó el Arduino simulado** (`arduino_simulado.py`). Es parte de la aplicación y no es una simulación de LTspice.
 - **No probó el circuito ni el PID con el hardware real.**
-- **No hizo push.**
+- **No hizo push** en ese momento. Después, a pedido del autor, la rama se subió y se unió a `main` (ver la Entrada 14).
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
+## Entrada 14 — 22/11/2026 · Merge a main, librerías y primer error de montaje
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`ParteExperimental/GemeloDigital/MANUAL.md`](../ParteExperimental/GemeloDigital/MANUAL.md) (secciones 1 y 9) · [`ParteExperimental/Esquematico_Circuito.md`](ParteExperimental/Esquematico_Circuito.md) |
+
+### Solicitud
+```text
+haz merge con main
+```
+```text
+puedes descargar las librerias en mni python 3.12
+```
+```text
+Puedes documentar eso. Conecté por accidente VIn a GND
+```
+
+### Lo que hizo la IA
+- **Git:**
+  - subió la rama `l298n-pid-gemelo-digital`;
+  - unió la rama a `main` (avance directo, sin conflictos) y subió `main`, con lo que el PR #1 quedó como *Merged*.
+- **Python 3.12:** instaló las librerías de `GemeloDigital/requirements.txt`.
+- **Montaje:** ayudó a diagnosticar el primer montaje. El L298N se calentaba sin que el motor girara, y el LED del ACS712 no encendía. El autor encontró la causa del LED: un cable de GND conectado por error a VIN.
+- **Documentación** del error:
+  - en el manual, en la lista de revisión (sección 1) y en problemas comunes (sección 9), junto con la revisión paso a paso de cada pieza;
+  - en el md del esquemático.
+
+### Verificación
+- **Aplicación:** con Python 3.12 (numpy 2.5, matplotlib 3.11, Pillow 13) recorre todas las páginas sin errores, con el Arduino simulado.
+
+### Lo que la IA NO pudo verificar
+- **Calentamiento del L298N:** no se confirmó que viniera de la misma causa que el LED apagado.
+- **Daños:** tampoco se confirmó si el error dañó alguna pieza.
+- **Hardware:** el circuito y el PID siguen sin probarse con el hardware real.
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
+## Entrada 15 — 22/11/2026 · Órdenes dañadas en el puerto serie y diagnóstico de la «lógica invertida»
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`ParteExperimental/GemeloDigital/MANUAL.md`](../ParteExperimental/GemeloDigital/MANUAL.md) (secciones 2 y 9) · sección 8 de [`MotorDC_L298N.ino`](../ParteExperimental/MotorDC_L298N/MotorDC_L298N.ino) |
+
+### Solicitud
+```text
+Mira ya tengo el motor conectado pero por alguna razón hay como una lógica invertida. Si le doy arrancar se detiene y si le doy detener arranca. Tampoco sigue ninguna de las funciones de referencia del PID. Podrías revisarlo?
+```
+```text
+Quieres jugar con la conexión física. Te doy permiso de usar la app
+```
+```text
+Yo pienso que hay un cuello de botella por la comunicación o algo así. Ya desconecté COM7 en teoría. La lógica está invertida. Intenta conectarte y arreglar las cosas
+```
+
+### Lo que hizo la IA
+- **Análisis de las capturas reales del equipo** (`ParteExperimental/datos/`, 18:02 a 18:12):
+  - durante el escalón el encoder no contó nada, aunque la corriente subía;
+  - en la fase previa el motor venía girando y se frenaba solo.
+- **Prueba por el puerto serie** con el Arduino del equipo (COM7), con permiso del autor: lazo abierto, máximo 6 V, siempre terminando en reposo.
+- **Problema de comunicación encontrado:**
+  - el Arduino recibió `P 44 12` como `P 44 2`, porque a 2 Mbaud se pierde un byte si llega mientras se atiende otra interrupción;
+  - **corrección:** las órdenes llevan una suma de verificación (`*HH`);
+  - el firmware rechaza las dañadas (`# ERR SUMA`);
+  - `protocolo_motor.EnlaceSerie.enviar_confirmado()` reenvía hasta recibir `# OK`;
+  - la aplicación, el receptor y el Arduino simulado usan este mecanismo, y la app muestra el contador **REENVIOS**.
+- **Firmware:** se cargó el nuevo en el Nano con avrdude (13 664 B, verificado).
+- **Diagnóstico de la «lógica invertida»:**
+  - con las órdenes ya correctas, en reposo (ENB, IN3 e IN4 en 0) el motor giraba a ~590 rad/s sin corriente por el ACS712;
+  - con el driver encendido, el motor quedaba quieto y la corriente sí pasaba por el sensor;
+  - el programa manda los estados correctos (lo confirma la telemetría), así que la causa es el **cableado**: el motor recibe energía por otro camino.
+- **Documentación** en el manual: el contador REENVIOS y dos filas nuevas en problemas comunes.
+
+### Verificación
+- **Firmware:** compila sin advertencias (13 664 B de flash, 41,7 %).
+- **Prueba con el Arduino real:** las 5 órdenes de configuración se confirmaron y hubo 7 reenvíos en total.
+- **Arduino simulado:**
+  - una orden dañada a propósito se rechaza;
+  - la app recorre todas sus páginas sin errores;
+  - el receptor recibe una captura completa sin pérdidas.
+
+### Lo que la IA NO pudo hacer o verificar
+- **No vio el cableado**, así que no sabe cuál conexión exacta está mal. Dejó la lista de revisión en el manual.
+- **El cero del ACS712** sigue en ~645 cuentas, en vez de cerca de 512. Puede ser una tierra mal conectada o un daño del sensor por el error de cableado anterior; no está confirmado.
+- **No hizo commit.**
+
+### Decisiones del equipo
+- *(pendiente)*
+
+---
+
+## Entrada 16 — 22/11/2026 · Ensayos reales del tema 4, 1 Mbaud, signo del encoder y sintonía del PID
+
+| Campo | Detalle |
+|-------|---------|
+| **Herramienta** | Claude Code (app de escritorio), modelo Claude Opus 5.5 de Anthropic (incluye búsqueda web) |
+| **Solicitada por** | Mario Betancourt |
+| **Documentación** | [`ParteExperimental/datos/tema4_20261122/LEEME.md`](../ParteExperimental/datos/tema4_20261122/LEEME.md) |
+
+### Solicitud
+```text
+Listo. Fue problema de tierras. Podrías lograr que siga una referencia. Que el PID funcione. Hay algunos casos donde el modo de ensayos produce saltos de encoder inválidos. Podrías buscar en internet información sobre cuántos polos magnéticos hay en la rueda del encoder y la escala de corriente del sensor de corriente
+```
+```text
+Podrías hacer una grabación para que pueda pasársela a mis compañeros. Ya me desconecté del puerto COM. No tienes que simular. Puede sutilizar la aplicación. Ya corroboré que las corrientes son seguras. Puedes realizar los experimentos que pide la guía del proyecto para capturar los datos por favor. Nosotros escogimos el tema 4. Quiero que me indiques el archivo donde se guarde la captura. Por favor corrobora que todo funcione bien. Quiero que también hagas que el PID funcione adecuadamente. Vuele
+```
+```text
+Hey pero el motor parece estar girando en una sola dirección en estos ensayos. Sí se nota el cambio de velocidad. pero el giro no se invierte
+```
+
+### Lo que hizo la IA
+- **Saltos inválidos del encoder:**
+  - Coincidían con tramas perdidas en la computadora; el Arduino reportó 0 pérdidas.
+  - Se pasó a **1 Mbaud** (38 461 muestras/s). Antes, a 2 Mbaud, se perdían de 100 a 730 tramas por captura.
+  - `postprocesamiento.py` corrige cada salto como ±2 en el sentido del movimiento.
+  - La app deja de dibujar durante la captura.
+  - Siguen perdiéndose algunas tramas en ~1 de cada 3 capturas; está documentado.
+- **Retraso de la app:**
+  - El driver FTDI retenía los datos hasta ~0,3 s con la telemetría a 500 Hz.
+  - Corrección: la telemetría se limita a una trama cada ~10 ms y las confirmaciones esperan hasta 0,5 s por intento.
+- **PID:**
+  - El encoder del montaje cuenta al revés respecto del voltaje, y eso hacía que el PID se realimentara al revés.
+  - Se agregó la orden `I` (invertir el signo) y el interruptor «INVERTIR ENCODER».
+- **Ensayos reales** (con permiso del autor, que confirmó que las corrientes eran seguras):
+  - (a) escalones a 5 niveles y (b) desaceleración libre y con freno, con `ensayos_tema4.py`;
+  - PID de velocidad y de posición con `prueba_pid.py`;
+  - sintonía en el motor real;
+  - figuras con `figuras_tema4.py` y un LEEME con los resultados.
+- **Aplicación:** ganancias por modo, valores por defecto sintonizados, apertura de las pruebas del PID (con el gemelo simulado) y listado de las subcarpetas.
+- **Búsqueda web:**
+  - Pulsos por vuelta del encoder: 11 (Abra Electronics).
+  - Polos del disco: 22 según la tabla de CHIHAI; no es la hoja de datos de este motor.
+  - Escala del ACS712-05B: 185 mV/A (Allegro).
+
+### Verificación
+- **Firmware:** compila y quedó cargado en el Nano (13 848 B).
+- **Captura a 1 Mbaud:** dos capturas de prueba completas, sin saltos.
+- **PID de velocidad** (200 ↔ 400 rad/s): 6,5 % de sobreimpulso, 0,19 s de establecimiento.
+- **PID de posición** (±1 vuelta): 1,8 % de sobreimpulso, 66 ms de establecimiento. En el seguimiento de ±5 vueltas, error RMS de 0,33 rad.
+- **Inversión de giro:** confirmada con los datos (−12 a +12 V, ±300 rad/s).
+- **Aplicación:** abre los archivos reales y recorre todas las páginas sin errores.
+
+### Lo que la IA NO hizo o no pudo verificar
+- **No hizo la prueba (c) con carga inercial:** requiere montar el disco.
+- **No midió** la resistencia del devanado ni el voltaje en los bornes.
+- **No confirmó** los pulsos por vuelta ni la reducción de este motor.
+- **No ajustó** los parámetros del modelo: es trabajo del equipo.
+- **No hizo commit.**
 
 ### Decisiones del equipo
 - *(pendiente)*

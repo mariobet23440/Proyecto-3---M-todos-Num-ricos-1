@@ -24,14 +24,14 @@
  *     El ADC trabaja en conversión continua y cada conversión dispara una
  *     interrupción, donde también se leen las fases del encoder. Corriente y
  *     encoder comparten así la misma base de tiempo:
- *       fs = 16 MHz / 16 / 13 ≈ 76 923 muestras/s.
- *     Es la frecuencia más alta que se puede transmitir:
- *       - El UART del ATmega328P a 16 MHz llega como máximo a 2 000 000 baudios.
- *       - Cada muestra ocupa 2 bytes (14 bits útiles), es decir, 20 bits en la
- *         línea: 1,54 Mbit/s, el 77 % de la capacidad del UART.
- *       - El siguiente prescaler del ADC (8) pediría 3,08 Mbit/s.
- *       - Con el reloj del ADC a 1 MHz (más de 200 kHz) el ADC pierde algo de
- *         resolución efectiva (hoja de datos del ATmega328P, sección 24.4).
+ *       fs = 16 MHz / 32 / 13 ≈ 38 462 muestras/s, a 1 000 000 baudios.
+ *     Cada muestra ocupa 2 bytes (14 bits útiles), es decir, 20 bits en la
+ *     línea: 0,77 Mbit/s, el 77 % de la capacidad del UART a 1 Mbaud.
+ *     El ATmega328P llega a 2 Mbaud (y a ≈ 76 923 muestras/s con prescaler 16),
+ *     pero con el adaptador USB-serie del Nano del equipo se perdían entre 100
+ *     y 700 tramas por captura en la computadora (el Arduino no perdía
+ *     ninguna), lo que producía saltos inválidos en el encoder. A 1 Mbaud se
+ *     midieron dos capturas completas sin pérdidas (22/11/2026).
  *     Secuencia: fase previa (motor libre, sirve para medir el cero del
  *     sensor), escalón (PWM fijo) y desconexión (motor libre o frenado).
  *     La posición, la velocidad y la corriente se calculan en la computadora
@@ -55,7 +55,7 @@
  *     (e_k - e_{k-1})/Ts su derivada (diferencia hacia atrás). El prompt tenía
  *     Ki/Ts y Kd·Ts; el autor pidió corregirlo a esta forma.
  *
- *  Protocolo serie (2 000 000 baudios): ver la sección 8 y
+ *  Protocolo serie (1 000 000 baudios): ver la sección 8 y
  *  ParteExperimental/protocolo_motor.py, que es su contraparte en Python.
  *
  * -----------------------------------------------------------------------------
@@ -173,19 +173,23 @@ const float    TAU_INICIAL_MS = 8.0f;    // Constante de tiempo del filtro de ve
 const float    CUENTAS_POR_VUELTA_INICIAL = 44.0f;
 const float    VOLTAJE_BUS_INICIAL = 12.0f;   // Voltaje de la fuente del L298N
 const bool     ANTIWINDUP_INICIAL  = true;    // Congela E_k cuando u se satura
+// Si al alimentar el motor ADELANTE la cuenta del encoder baja, el PID se
+// realimenta al revés. Con true (u orden 'I 1') se invierte el signo de la
+// cuenta en tiempo real. En el montaje del equipo hace falta (22/11/2026).
+const bool     INVERTIR_ENCODER_INICIAL = false;
 
 // Si no llega ninguna orden en este tiempo y el motor está en un modo activo,
 // el motor pasa a reposo (por si la aplicación se cierra o se desconecta).
 // La aplicación envía 'H' cada 0,5 s para mantenerlo activo.
 const uint16_t TIEMPO_SIN_COMUNICACION_MS = 2000;
 
-// Velocidad del UART. A 16 MHz, 2 000 000 baudios es exacto (UBRR0 = 0 con U2X0)
-// y es el máximo del ATmega328P. Si la computadora o el adaptador USB-serie no
-// lo aceptan, usar 1 000 000 y PRESCALER_ADC_RAPIDO = 32.
-const uint32_t BAUDIOS = 2000000UL;
+// Velocidad del UART. A 16 MHz, 1 000 000 y 2 000 000 baudios son exactos.
+// Con 2 000 000 (y PRESCALER_ADC_RAPIDO = 16) el adaptador USB-serie del Nano
+// del equipo perdía bytes en la computadora; con 1 000 000 no se perdió ninguno.
+const uint32_t BAUDIOS = 1000000UL;
 
 // Prescaler del ADC en la captura rápida (fs = 16 MHz / prescaler / 13).
-const uint8_t PRESCALER_ADC_RAPIDO = 16;     // ≈ 76 923 muestras/s
+const uint8_t PRESCALER_ADC_RAPIDO = 32;     // ≈ 38 462 muestras/s
 // Prescaler del ADC en tiempo real: reloj de 125 kHz (resolución completa),
 // ≈ 9 615 conversiones/s que se promedian en cada periodo Ts.
 const uint8_t PRESCALER_ADC_NORMAL = 128;
@@ -314,6 +318,7 @@ struct Controlador {
   float cuentasPorVuelta;  // Cuentas del encoder por vuelta del eje controlado
   float voltajeBus;        // Voltaje máximo que puede aplicar el L298N
   bool  antiwindup;
+  bool  invertirEncoder;  // Cambia el signo de la cuenta del encoder
   // Referencia
   uint8_t tipoRef;
   float amplitud, desfase, frecuencia;   // r(t) = desfase + amplitud · forma(2π f t)
@@ -658,7 +663,7 @@ static_assert(sizeof(Telemetria) == 27, "La trama de telemetria debe ocupar 27 b
 void pasoControl() {
   // 1) Posición y errores del encoder (lectura atómica de la variable de 32 bits).
   noInterrupts();
-  const int32_t cuenta = cuentaEncoder;
+  const int32_t cuenta = ctl.invertirEncoder ? -cuentaEncoder : cuentaEncoder;
   const uint8_t errores = erroresEncoder;
   erroresEncoder = 0;
   const uint8_t atrasados = ticksAtrasados;
@@ -746,6 +751,14 @@ void pasoControl() {
 // Cada orden es una línea de texto: una letra y números separados por espacios.
 // Las respuestas del Arduino son líneas que empiezan con '#'.
 //
+// Suma de verificación (opcional): la línea puede terminar en "*HH", con HH la
+// suma de los bytes anteriores al '*' módulo 256, en hexadecimal. Si no
+// coincide, la orden se descarta y se responde "# ERR SUMA ...". A alta velocidad el
+// Arduino tiene unos 10 µs para leer cada byte; si en ese momento atiende otra
+// interrupción, el byte se pierde y la orden llega cambiada (se observó "P 44 12"
+// recibida como "P 44 2"). La aplicación envía siempre la suma y reenvía la
+// orden hasta recibir "# OK". Escrita a mano, sin '*', la orden se acepta igual.
+//
 //   ?                          Envía la configuración ("# CFG ...")
 //   H                          Latido: mantiene activo el modo (ver TIEMPO_SIN_COMUNICACION_MS)
 //   X                          Paro: modo reposo
@@ -756,6 +769,7 @@ void pasoControl() {
 //   P cuentas_vuelta v_bus     Cuentas por vuelta del eje controlado y voltaje de la fuente
 //   R tipo amplitud desfase f  Referencia: 0 constante, 1 seno, 2 cuadrada, 3 triangular
 //   A 0|1                      Anti-windup
+//   I 0|1                      Invierte el signo de la cuenta del encoder
 //   S n                        Telemetría cada n periodos (0 = apagada)
 //   Z                          Pone la cuenta del encoder en 0
 //   C pwm sentido freno t0 t1 t2   Configura la captura rápida (tiempos en ms)
@@ -774,6 +788,7 @@ void imprimirConfiguracion() {
   Serial.print(F(" cpr="));         Serial.print(ctl.cuentasPorVuelta, 3);
   Serial.print(F(" vbus="));        Serial.print(ctl.voltajeBus, 3);
   Serial.print(F(" aw="));          Serial.print(ctl.antiwindup ? 1 : 0);
+  Serial.print(F(" inv_enc="));     Serial.print(ctl.invertirEncoder ? 1 : 0);
   Serial.print(F(" ref_tipo="));    Serial.print(ctl.tipoRef);
   Serial.print(F(" ref_amp="));     Serial.print(ctl.amplitud, 4);
   Serial.print(F(" ref_off="));     Serial.print(ctl.desfase, 4);
@@ -803,7 +818,25 @@ uint8_t leerNumeros(const char *texto, float *valores, uint8_t maximo) {
   return n;
 }
 
+// Revisa la suma de verificación "*HH" (si la hay) y la quita de la línea.
+// Devuelve false si la suma no coincide.
+bool verificarSuma(char *linea) {
+  char *asterisco = strchr(linea, '*');
+  if (asterisco == nullptr) return true;          // Orden escrita a mano: sin suma
+  uint8_t suma = 0;
+  for (char *p = linea; p < asterisco; p++) suma += (uint8_t)*p;
+  char *fin;
+  const long esperada = strtol(asterisco + 1, &fin, 16);
+  *asterisco = 0;                                 // La línea queda sin la suma
+  return fin != asterisco + 1 && esperada == suma;
+}
+
 void ejecutarOrden(char *linea) {
+  if (!verificarSuma(linea)) {
+    Serial.print(F("# ERR SUMA "));
+    Serial.println(linea);
+    return;
+  }
   while (*linea == ' ') linea++;
   const char orden = (char)toupper(linea[0]);
   if (orden == 0) return;
@@ -848,6 +881,15 @@ void ejecutarOrden(char *linea) {
       } else ok = false;
       break;
     case 'A': if (n >= 1) ctl.antiwindup = v[0] != 0; else ok = false; break;
+    case 'I':
+      if (n >= 1) {
+        ctl.invertirEncoder = v[0] != 0;
+        noInterrupts(); cuentaEncoder = 0; interrupts();   // La posición vuelve a 0
+        ctl.cuentaAnterior = 0;
+        ctl.velocidad = 0;
+        reiniciarPID();
+      } else ok = false;
+      break;
     case 'S': if (n >= 1 && v[0] >= 0 && v[0] <= 255) ctl.decimacion = (uint8_t)v[0]; else ok = false; break;
     case 'Z':
       noInterrupts(); cuentaEncoder = 0; interrupts();
@@ -921,6 +963,7 @@ void setup() {
   ctl.cuentasPorVuelta = CUENTAS_POR_VUELTA_INICIAL;
   ctl.voltajeBus = VOLTAJE_BUS_INICIAL;
   ctl.antiwindup = ANTIWINDUP_INICIAL;
+  ctl.invertirEncoder = INVERTIR_ENCODER_INICIAL;
   ctl.tipoRef = REF_CONSTANTE;
   ctl.amplitud = 0; ctl.desfase = 0; ctl.frecuencia = 0;
   ctl.decimacion = 1;
@@ -931,7 +974,7 @@ void setup() {
   Serial.begin(BAUDIOS);
   configurarTiempoReal();
 
-  Serial.println(F("# LISTO Motor JGA25-370 con L298N. Ordenes: ? H X M K T F P R A S Z C E"));
+  Serial.println(F("# LISTO Motor JGA25-370 con L298N. Ordenes: ? H X M K T F P R A I S Z C E"));
   imprimirConfiguracion();
   ultimaOrdenMs = millis();
 }

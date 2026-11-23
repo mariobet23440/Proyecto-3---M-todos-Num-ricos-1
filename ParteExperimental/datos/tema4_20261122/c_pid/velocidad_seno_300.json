@@ -1,0 +1,38 @@
+{
+  "tipo": "prueba_pid",
+  "fecha": "2026-11-22 19:07:18",
+  "argumentos": {
+    "puerto": "COM7",
+    "baudios": 1000000,
+    "modo": "vel",
+    "kp": 0.04,
+    "ki": 0.4,
+    "kd": 0.0,
+    "ts": 5.0,
+    "tau": 10.0,
+    "tipo": "seno",
+    "amp": 100.0,
+    "off": 300.0,
+    "f": 0.5,
+    "duracion": 8.0,
+    "cpr": 44.0,
+    "vbus": 12.0,
+    "invertir_encoder": 1,
+    "antiwindup": 1,
+    "vref": 5.0,
+    "sensibilidad": 0.185,
+    "cero": null,
+    "decimacion": 1,
+    "salida": "datos/tema4_20261122/c_pid/velocidad_seno_300"
+  },
+  "cero_adc": 516.2629160887656,
+  "resumen": {
+    "error_rms": 17.1664,
+    "saturado_%": 0.0,
+    "periodos_atrasados_%": 0.0,
+    "reenvios_de_ordenes": 1,
+    "tramas": 1555,
+    "huecos_en_k": 0
+  },
+  "escalones": []
+}

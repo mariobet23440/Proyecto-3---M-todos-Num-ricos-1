@@ -1,0 +1,93 @@
+{
+  "tipo": "prueba_pid",
+  "fecha": "2026-11-22 19:08:20",
+  "argumentos": {
+    "puerto": "COM7",
+    "baudios": 1000000,
+    "modo": "pos",
+    "kp": 2.0,
+    "ki": 0.0,
+    "kd": 0.04,
+    "ts": 5.0,
+    "tau": 10.0,
+    "tipo": "cuadrada",
+    "amp": 6.2832,
+    "off": 0.0,
+    "f": 0.5,
+    "duracion": 6.0,
+    "cpr": 44.0,
+    "vbus": 12.0,
+    "invertir_encoder": 1,
+    "antiwindup": 1,
+    "vref": 5.0,
+    "sensibilidad": 0.185,
+    "cero": null,
+    "decimacion": 1,
+    "salida": "datos/tema4_20261122/c_pid/sintonia/pos_kp2.0_ki0_kd0.04"
+  },
+  "cero_adc": 516.0868585298197,
+  "resumen": {
+    "error_rms": 2.1338,
+    "saturado_%": 1.98,
+    "periodos_atrasados_%": 0.0,
+    "reenvios_de_ordenes": 1,
+    "tramas": 1260,
+    "huecos_en_k": 0
+  },
+  "escalones": [
+    {
+      "t_inicio_s": 1.0,
+      "de": 6.2832,
+      "a": -6.2832,
+      "sobreimpulso_%": 4.55,
+      "t_establecimiento_5%_s": 0.055,
+      "error_final_medio": 0.2856,
+      "rizado_final_std": 0.0
+    },
+    {
+      "t_inicio_s": 2.0,
+      "de": -6.2832,
+      "a": 6.2832,
+      "sobreimpulso_%": 4.55,
+      "t_establecimiento_5%_s": 0.05,
+      "error_final_medio": -0.5712,
+      "rizado_final_std": 0.0
+    },
+    {
+      "t_inicio_s": 3.0,
+      "de": 6.2832,
+      "a": -6.2832,
+      "sobreimpulso_%": 6.82,
+      "t_establecimiento_5%_s": NaN,
+      "error_final_medio": 0.8568,
+      "rizado_final_std": 0.0
+    },
+    {
+      "t_inicio_s": 4.0,
+      "de": -6.2832,
+      "a": 6.2832,
+      "sobreimpulso_%": 6.82,
+      "t_establecimiento_5%_s": 0.14,
+      "error_final_medio": -0.5712,
+      "rizado_final_std": 0.0
+    },
+    {
+      "t_inicio_s": 5.0,
+      "de": 6.2832,
+      "a": -6.2832,
+      "sobreimpulso_%": 4.55,
+      "t_establecimiento_5%_s": 0.05,
+      "error_final_medio": 0.2856,
+      "rizado_final_std": 0.0
+    },
+    {
+      "t_inicio_s": 6.0,
+      "de": -6.2832,
+      "a": 6.2832,
+      "sobreimpulso_%": 5.68,
+      "t_establecimiento_5%_s": 0.105,
+      "error_final_medio": -0.5712,
+      "rizado_final_std": 0.0
+    }
+  ]
+}

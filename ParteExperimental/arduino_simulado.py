@@ -24,9 +24,9 @@ import time
 import numpy as np
 
 from modelo_motor import GemeloDigital, ParametrosMotor, voltaje_motor
-from protocolo_motor import empaquetar_rapida, empaquetar_telemetria
+from protocolo_motor import empaquetar_rapida, empaquetar_telemetria, suma_verificacion
 
-FS_RAPIDA = 16e6 / 16 / 13
+FS_RAPIDA = 16e6 / 32 / 13
 ESTADOS_CUADRATURA = (0, 2, 3, 1)   # Estado (A<<1)|B para cuenta mod 4 (sentido +1 de la tabla)
 
 
@@ -46,12 +46,13 @@ class ArduinoSimulado:
         self.modo, self.kp, self.ki, self.kd = 0, 0.05, 0.0, 0.0
         self.ts_ms, self.tau_ms, self.cpr, self.vbus = 2.0, 8.0, 44.0, self.p.v_bus
         self.aw = True
+        self.inv_enc = False
         self.ref = (0, 0.0, 0.0, 0.0)
         self.decimacion = 1
         self.cap = [255, 1, 0, 200, 1500, 1500]
         self._reiniciar_estado()
         self._ultima_orden = time.time()
-        self._escribir_texto("# LISTO Motor JGA25-370 con L298N (SIMULADO). Ordenes: ? H X M K T F P R A S Z C E")
+        self._escribir_texto("# LISTO Motor JGA25-370 con L298N (SIMULADO). Ordenes: ? H X M K T F P R A I S Z C E")
         self._escribir_cfg()
         self._hilo = threading.Thread(target=self._correr, daemon=True)
         self._hilo.start()
@@ -108,6 +109,13 @@ class ArduinoSimulado:
 
     # --- Órdenes (igual que la sección 8 del .ino) ---
     def _orden(self, linea: str):
+        if "*" in linea:                                   # Suma de verificación (sección 8 del .ino)
+            cuerpo, _, suma = linea.partition("*")
+            if suma.strip().upper() != suma_verificacion(cuerpo):
+                self._escribir_texto("# ERR SUMA " + cuerpo); return
+            linea = cuerpo.strip()
+        if not linea:
+            return
         letra = linea[0].upper()
         try:
             v = [float(x) for x in linea[1:].split()]
@@ -134,6 +142,9 @@ class ArduinoSimulado:
             self.ref = (int(v[0]), v[1], v[2], v[3]); self.k_ref = 0
         elif letra == "A" and v:
             self.aw = v[0] != 0
+        elif letra == "I" and v:
+            self.inv_enc = v[0] != 0
+            self.cuenta_cero = self._cuenta_bruta(); self.cuenta_ant = 0; self.vel = 0.0; self._reiniciar_pid()
         elif letra == "S" and v and 0 <= v[0] <= 255:
             self.decimacion = int(v[0])
         elif letra == "Z":
@@ -192,6 +203,8 @@ class ArduinoSimulado:
         ts = self.ts_ms / 1000
         self.motor.avanzar(ts, self.u_aplicado, self.abierto)
         cuenta = self._cuenta_bruta() - self.cuenta_cero
+        if self.inv_enc:
+            cuenta = -cuenta
         q = 2 * math.pi / self.cpr
         vel_cruda = (cuenta - self.cuenta_ant) * q / ts
         self.cuenta_ant = cuenta
@@ -234,7 +247,7 @@ class ArduinoSimulado:
         self.modo = 0
         self._escribir_texto(
             f"INICIO fs_hz={FS_RAPIDA:.3f} n_previas={n[0]} n_encendido={n[1]} n_apagado={n[2]} n_total={total} "
-            f"prescaler_adc=16 baudios=2000000 pwm={pwm} f_pwm_hz=490.2 sentido={sentido} freno={freno}")
+            f"prescaler_adc=32 baudios=1000000 pwm={pwm} f_pwm_hz=490.2 sentido={sentido} freno={freno}")
         h = 1 / FS_RAPIDA
         p = self.p
         v_on = voltaje_motor(sentido * pwm / 255 * self.vbus, p)

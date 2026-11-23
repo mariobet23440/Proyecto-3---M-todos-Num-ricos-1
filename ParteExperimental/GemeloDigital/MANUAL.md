@@ -45,7 +45,12 @@ Aplicación de escritorio para el motor DC JGA25-370 con L298N:
 - [ ] El **puente (jumper) de ENB** del L298N está **quitado** (ENB va a D3).
 - [ ] IN3 en D4, IN4 en D5, el ACS712 en A0, la fase A del encoder en D8 y la B en D9.
 - [ ] **Todas las tierras unidas:** Nano, L298N, fuente del motor, ACS712 y encoder.
-- [ ] El encoder y el ACS712 están alimentados con 5 V.
+- [ ] Los cables de tierra van a un pin **GND** del Nano, **no a VIN**. En el lado de A0–A7, el
+      pin VIN está justo al lado de GND y es fácil equivocarse (ver la sección 9).
+- [ ] El encoder y el ACS712 están alimentados con 5 V. Prueba rápida: con solo el USB
+      conectado, **el LED del ACS712 se enciende**.
+- [ ] En OUT3 y OUT4 (a través de la bornera del ACS712) van los **dos cables de potencia del
+      motor**, no los del encoder.
 
 **Para abrir la aplicación:**
 
@@ -76,6 +81,10 @@ La ventana se abre maximizada.
   - **MODO**: lo que está haciendo el Arduino;
   - **TRAMAS**: cuántos datos por segundo llegan (unos 500/s con Ts = 2 ms);
   - **MALAS**: tramas dañadas (debe quedarse en 0 o casi).
+  - **REENVIOS**: órdenes que la aplicación tuvo que repetir porque el Arduino no las recibió
+    completas. Que suba de vez en cuando es normal: a alta velocidad el Arduino a veces pierde un
+    byte, y cada orden lleva una suma de verificación para que una orden dañada se rechace y
+    se reenvíe en vez de aplicarse con otro valor.
 
 > **Seguridad.** La aplicación le avisa al Arduino que sigue viva cada medio segundo. Si se
 > cierra o se desconecta el cable, el Arduino detiene el motor solo, en 2 s.
@@ -90,7 +99,7 @@ Página **CONEXION**.
 
 1. Conecte el Nano por USB.
 2. Presione **BUSCAR** y elija el puerto (por ejemplo `COM5`).
-3. Deje **BAUDIOS** en `2000000` y presione **CONECTAR**.
+3. Deje **BAUDIOS** en `1000000` y presione **CONECTAR**.
 4. Espere unos 2 s: el Nano se reinicia al abrir el puerto. En la consola debe aparecer una
    línea `# LISTO ...` y después `# CFG ...`.
 
@@ -116,9 +125,9 @@ Luego:
 2. Con el motor **quieto** y conectado, presione **CALIBRAR CERO**: mide el sensor de corriente
    sin corriente.
 3. Si la corriente sale con el signo al revés, active **INVERTIR SIGNO DE LA CORRIENTE**.
-4. Si la posición crece al revés de lo que espera, **intercambie los cables A y B del
-   encoder**. No basta con el interruptor «INVERTIR ENCODER»: ese solo afecta a la captura
-   rápida, y el PID usa el signo del Arduino.
+4. Si con el motor ADELANTE la posición baja, active **INVERTIR ENCODER** y presione
+   **APLICAR**: el PID necesita que el encoder cuente hacia arriba. En el montaje del equipo
+   hace falta.
 
 Todo esto se guarda solo para la próxima vez.
 
@@ -390,12 +399,21 @@ dθ/dt   = ω
 
 ## 9. Problemas comunes
 
+> **Ganancias que funcionan en el motor del equipo** (22/11/2026, Ts = 5 ms, filtro de 10 ms): velocidad
+> Kp = 0,04, Ki = 0,4, Kd = 0; posición Kp = 3, Ki = 5, Kd = 0,06. La aplicación guarda unas ganancias
+> por modo. Resultados en `ParteExperimental/datos/tema4_20261122/LEEME.md`.
+
 | Síntoma | Qué revisar |
 |---------|-------------|
 | No aparece el puerto | Cable USB de datos (no solo de carga), driver CH340 instalado, **BUSCAR** otra vez. |
-| Conecta, pero TRAMAS = 0 y la consola vacía | ¿El Nano tiene cargado `MotorDC_L298N.ino`? ¿Baudios = 2000000? Algunos adaptadores no llegan a 2 Mbaud: en el `.ino` ponga `BAUDIOS = 1000000UL` y `PRESCALER_ADC_RAPIDO = 32`, vuelva a cargarlo y conecte con 1000000. |
+| Conecta, pero TRAMAS = 0 y la consola vacía | ¿El Nano tiene cargado `MotorDC_L298N.ino`? ¿Baudios = 1000000? (Desde el 22/11/2026 el programa usa 1 Mbaud: a 2 Mbaud el adaptador FTDI del Nano perdía bytes.) |
 | MALAS sube sin parar | Cable USB largo o con ruido; tierra común; pruebe 1000000 baudios. |
 | El motor no gira | Jumper de ENB todavía puesto (ENB debe venir de D3), fuente del L298N apagada, IN3/IN4 mal conectados. |
+| **«Lógica invertida»:** el motor gira en reposo (STOP) y se detiene al ARRANCAR; no sigue la referencia | **Es cableado, no el programa.** En el montaje del equipo (22/11/2026) se midió por el puerto serie: en reposo (ENB, IN3 e IN4 en 0) el motor giraba a ~590 rad/s **sin que pasara corriente por el ACS712**. Con el driver encendido, el motor quedaba quieto y la corriente sí pasaba por el sensor. O sea, el motor recibe energía por otro camino, y las salidas del L298N van a otra cosa. **Desconecte los 12 V** y revise: (1) los dos cables del motor van **solo** a IP− del ACS712 y a OUT4; ninguno a 12V, GND ni 5V; (2) OUT3 va a IP+ y nada más; (3) el **jumper de ENB está quitado** y el cable de D3 está en el pin **ENB** (no en el pin de 5 V del lado del jumper); (4) D4 → IN3 y D5 → IN4. Prueba: con la app conectada y en STOP, el motor debe estar quieto y el voltaje entre sus bornes debe ser 0 V. |
+| La consola dice «El Arduino no confirmó la orden» | El Nano no tiene cargada la versión del `.ino` con la suma de verificación, o no responde. Cargue de nuevo `MotorDC_L298N.ino`. |
+| **El LED del ACS712 no enciende** (y el L298N se calienta sin que el motor gire) | **Desconecte los 12 V.** En el primer montaje del equipo (22/11/2026), la causa fue un cable de **GND conectado por error a VIN**: en el Nano, VIN está justo al lado de GND. Con eso el sensor no tenía tierra y quedó apagado; al corregir el cable, el LED encendió. En ese momento el L298N también se calentaba sin que el motor girara, pero no se ha confirmado que fuera por la misma causa: revise también la fila siguiente. Revise: (1) que todas las tierras vayan a un pin **GND**; (2) con solo el USB, que el LED del ACS712 encienda y que haya ≈ 5 V entre VCC y GND y ≈ 2,5 V entre OUT y GND; (3) en la app, que **CALIBRAR CERO** dé cerca de 512. |
+| El L298N se calienta y el motor no gira (con el LED del ACS712 encendido) | **Desconecte los 12 V.** Revise: (1) que en OUT3 y OUT4 estén los **cables de potencia** del motor y no los del encoder; (2) la resistencia del motor entre sus dos cables (unos pocos ohmios; 0 Ω es un corto); (3) que el motor gire conectado directo a 12 V; (4) que la fuente no esté al revés; (5) que no esté pidiendo muy pocos voltios: el motor se queda detenido con corriente y el L298N, que pierde unos 2 V, se calienta. |
+| Después de un error de cableado | Revise cada pieza por separado antes de volver a conectar los 12 V. El **Nano** debe mostrar `# LISTO` al conectar; con A0 en GND, CALIBRAR CERO debe dar ≈ 0, y con A0 en 3V3, ≈ 675. El **ACS712** debe encender el LED y dar ≈ 2,5 V en OUT. El **encoder**: en TABLERO, girando el eje a mano, debe cambiar θ. El **motor** debe girar directo a 12 V. |
 | La posición crece al revés | Intercambie los cables A y B del encoder. |
 | La corriente sale negativa al acelerar hacia adelante | Active **INVERTIR SIGNO DE LA CORRIENTE**, o dé vuelta al ACS712. |
 | La corriente no es 0 con el motor quieto | **CALIBRAR CERO** (con el motor quieto). |

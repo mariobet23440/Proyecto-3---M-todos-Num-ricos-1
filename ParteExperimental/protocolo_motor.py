@@ -30,7 +30,7 @@ from pathlib import Path
 
 import numpy as np
 
-BAUDIOS = 2_000_000
+BAUDIOS = 1_000_000   # Ver la sección 2 del .ino: a 2 Mbaud el adaptador USB del equipo perdía bytes
 
 # --- Captura rápida -----------------------------------------------------------
 BANDERA_PERDIDA = 0x40
@@ -120,7 +120,7 @@ def guardar_captura_rapida(base: Path, datos: bytes, encabezado: dict, resumen: 
     base.parent.mkdir(parents=True, exist_ok=True)
     base.with_suffix(".bin").write_bytes(bytes(datos))
     crudos, descartados = decodificar_rapida(datos)
-    fs = float(encabezado.get("fs_hz", 76923.077))
+    fs = float(encabezado.get("fs_hz", 38461.538))
     n = np.arange(len(crudos["adc"]))
     tabla = np.column_stack([n, n / fs, crudos["motor"], crudos["adc"], crudos["a"], crudos["b"], crudos["perdida"]])
     np.savetxt(base.with_name(base.name + "_crudo.csv"), tabla, delimiter=",",
@@ -219,10 +219,35 @@ class ParserTiempoReal:
 # =============================================================================
 #  Órdenes
 # =============================================================================
-def orden(letra: str, *valores) -> bytes:
-    """orden('K', 0.1, 0.5, 0.001) -> b'K 0.1 0.5 0.001\\n'"""
+def texto_orden(letra: str, *valores) -> str:
+    """texto_orden('K', 0.1, 0.5, 0.001) -> 'K 0.1 0.5 0.001'"""
     partes = [letra] + [f"{v:.6g}" if isinstance(v, float) else str(int(v)) for v in valores]
-    return (" ".join(partes) + "\n").encode("ascii")
+    return " ".join(partes)
+
+
+def suma_verificacion(texto: str) -> str:
+    """Suma de los bytes módulo 256, en hexadecimal (ver la sección 8 del .ino)."""
+    return f"{sum(texto.encode('ascii')) & 0xFF:02X}"
+
+
+def orden(letra: str, *valores) -> bytes:
+    """orden('K', 0.1, 0.5, 0.001) -> b'K 0.1 0.5 0.001*HH' + salto de línea.
+
+    HH es la suma de verificación. A alta velocidad el Arduino a veces pierde un byte
+    de lo que recibe; con la suma, una orden dañada se rechaza en vez de
+    aplicarse con otro valor.
+    """
+    texto = texto_orden(letra, *valores)
+    return f"{texto}*{suma_verificacion(texto)}\n".encode("ascii")
+
+
+def decimacion_telemetria(ts_ms: float, intervalo_ms: float = 10.0) -> int:
+    """Cada cuántos periodos enviar telemetría para que haya una trama cada
+    ~10 ms. El adaptador FTDI del Nano entrega los datos a la computadora
+    cuando hay una pausa de ~16 ms; con tramas cada 2 ms nunca hay pausa y el
+    driver junta bloques de 4 KB: la app veía el motor con ~0,3 s de atraso
+    (medido el 22/11/2026)."""
+    return max(1, min(255, int(round(intervalo_ms / max(ts_ms, 0.1)))))
 
 
 # =============================================================================
@@ -247,6 +272,9 @@ class EnlaceSerie:
         self._en_captura = False
         self._captura = None
         self.bytes_recibidos = 0
+        self.reintentos = 0                       # Órdenes que hubo que reenviar
+        self._respuestas = []                     # Últimas líneas "# OK ..." / "# ERR ..."
+        self._hay_respuesta = threading.Condition()
         self._hilo = threading.Thread(target=self._leer, daemon=True)
         self._hilo.start()
 
@@ -264,6 +292,46 @@ class EnlaceSerie:
     def enviar(self, datos: bytes):
         with self._bloqueo:
             self.puerto.write(datos)
+
+    def enviar_confirmado(self, letra: str, *valores, intentos: int = 4, espera: float = 0.5) -> bool:
+        """Envía una orden y espera "# OK <orden>". Si no llega (o llega otra
+        cosa, porque se perdió un byte), la reenvía. Devuelve True si se confirmó.
+        La espera es larga a propósito: el driver FTDI de Windows retiene los
+        datos hasta ~0,3 s cuando la telemetría llega sin pausas (ver
+        decimacion_telemetria()).
+        No sirve para '?', 'H' ni 'E', que no responden "# OK"."""
+        esperado = "# OK " + texto_orden(letra, *valores)
+        datos = orden(letra, *valores)
+        for intento in range(intentos):
+            with self._hay_respuesta:
+                self._respuestas.clear()
+            if intento:
+                self.reintentos += 1
+            self.enviar(datos)
+            limite = time.time() + espera
+            with self._hay_respuesta:
+                while True:
+                    if esperado in self._respuestas:
+                        return True
+                    resto = limite - time.time()
+                    if resto <= 0:
+                        break
+                    self._hay_respuesta.wait(resto)
+        return False
+
+    def _anotar_respuestas(self, eventos):
+        """Guarda las respuestas "# OK" / "# ERR" para enviar_confirmado()."""
+        for tipo, valor in eventos:
+            if tipo == "texto" and (valor.startswith("# OK ") or valor.startswith("# ERR")):
+                with self._hay_respuesta:
+                    self._respuestas.append(valor)
+                    del self._respuestas[:-50]
+                    self._hay_respuesta.notify_all()
+
+    @property
+    def en_captura(self) -> bool:
+        """True mientras llega una captura rápida."""
+        return self._en_captura
 
     def iniciar_captura(self):
         """Envía 'E' y cambia el lector al modo de captura rápida."""
@@ -302,7 +370,9 @@ class EnlaceSerie:
             if self._en_captura:
                 self._leer_captura(bloque)
             else:
-                for ev in self.parser.alimentar(bloque):
+                eventos = self.parser.alimentar(bloque)
+                self._anotar_respuestas(eventos)
+                for ev in eventos:
                     self.eventos.put(ev)
 
     def _leer_captura(self, bloque: bytes):
@@ -338,5 +408,7 @@ class EnlaceSerie:
             self._en_captura = False
             self.eventos.put(("captura", {"datos": binario, "encabezado": cap["encabezado"],
                                           "resumen": resumen}))
-            for ev in self.parser.alimentar(resto):
+            eventos = self.parser.alimentar(resto)
+            self._anotar_respuestas(eventos)
+            for ev in eventos:
                 self.eventos.put(ev)
