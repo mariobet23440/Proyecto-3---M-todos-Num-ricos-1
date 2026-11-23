@@ -1,0 +1,22 @@
+{
+  "tipo": "captura_rapida",
+  "fecha": "2026-11-22 18:54:32",
+  "encabezado": {
+    "fs_hz": 38461.539,
+    "n_previas": 11538.0,
+    "n_encendido": 57692.0,
+    "n_apagado": 57692.0,
+    "n_total": 126922.0,
+    "prescaler_adc": 32.0,
+    "baudios": 1000000.0,
+    "pwm": 255.0,
+    "f_pwm_hz": 490.2,
+    "sentido": 1.0,
+    "freno": 0.0
+  },
+  "resumen_arduino": "FIN tramas_enviadas=126922 tramas_perdidas=0",
+  "tramas_recibidas": 126922,
+  "bytes_descartados": 0,
+  "marcas_de_perdida": 0,
+  "formato_trama": "b0 = 1 P M B A C9 C8 C7 | b1 = 0 C6..C0"
+}

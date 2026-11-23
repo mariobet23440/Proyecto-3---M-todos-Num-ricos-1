@@ -1,0 +1,16 @@
+{
+  "muestras": 246004,
+  "fs_hz": 76923.078,
+  "duracion_s": 3.198051955227273,
+  "cuentas_por_vuelta": 44.0,
+  "saltos_invalidos_encoder": 0,
+  "marcas_de_perdida": 0,
+  "cero_adc": 649.1651161277731,
+  "k_escalon": 15371,
+  "k_desconexion": 130682,
+  "omega_regimen_rad_s": 0.38572485054358113,
+  "corriente_regimen_A": 0.8562851944706131,
+  "corriente_pico_A": 0.8985802942360741,
+  "t_63_escalon_s": 0.0,
+  "t_37_desconexion_s": NaN
+}
